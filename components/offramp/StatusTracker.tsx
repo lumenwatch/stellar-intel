@@ -1,6 +1,7 @@
 'use client'
-import type { WithdrawStatusValue } from '@/types'
+import type { WithdrawStatusValue, Sep24Transaction } from '@/types'
 import { formatDeliveredAmount } from '@/lib/format'
+import { Timeline } from './Timeline'
 
 interface StatusTrackerProps {
   transactionId: string
@@ -14,6 +15,7 @@ interface StatusTrackerProps {
   currencyCode: string
   stellarTransactionId: string | undefined
   externalTransactionId: string | undefined
+  refunds?: Sep24Transaction['refunds']
   isLoading: boolean
   error: string | undefined
   onRetryAnchor?: () => void
@@ -68,6 +70,7 @@ export function StatusTracker({
   currencyCode,
   stellarTransactionId,
   externalTransactionId,
+  refunds,
   isLoading,
   error,
 }: StatusTrackerProps) {
@@ -122,8 +125,8 @@ export function StatusTracker({
         </p>
       )}
 
-      {/* Amount details — hidden when celebration banner is shown */}
-      {(amountIn || amountOut) && !isCompleted && (
+      {/* Amount details — hidden when celebration banner or refund card is shown */}
+      {(amountIn || amountOut) && !isCompleted && status !== 'refunded' && (
         <dl className="mb-4 space-y-1.5 text-sm">
           {amountIn && (
             <div className="flex justify-between">
@@ -152,6 +155,58 @@ export function StatusTracker({
         </dl>
       )}
 
+      {/* Refund details */}
+      {status === 'refunded' && refunds && (
+        <div className="mb-4 mt-2 rounded-lg bg-yellow-50 p-4 dark:bg-yellow-900/20">
+          <h4 className="mb-2 text-sm font-semibold text-yellow-800 dark:text-yellow-300">Refund Details</h4>
+          <dl className="space-y-1.5 text-sm">
+            {refunds.amount_refunded && (
+              <div className="flex justify-between">
+                <dt className="text-yellow-700/80 dark:text-yellow-400/80">Amount Refunded</dt>
+                <dd className="font-medium text-yellow-900 dark:text-yellow-200">
+                  {refunds.amount_refunded} {parseAsset(amountInAsset) || 'USDC'}
+                </dd>
+              </div>
+            )}
+            {refunds.amount_fee && (
+              <div className="flex justify-between">
+                <dt className="text-yellow-700/80 dark:text-yellow-400/80">Refund Fee</dt>
+                <dd className="font-medium text-yellow-900 dark:text-yellow-200">
+                  {refunds.amount_fee} {parseAsset(amountInAsset) || 'USDC'}
+                </dd>
+              </div>
+            )}
+          </dl>
+          
+          {refunds.payments && refunds.payments.length > 0 && (
+            <div className="mt-3 pt-3 border-t border-yellow-200/50 dark:border-yellow-700/50">
+              <p className="text-xs font-semibold text-yellow-800 dark:text-yellow-300 mb-2">Refund Payments</p>
+              <div className="space-y-2">
+                {refunds.payments.map((p, i) => (
+                  <div key={i} className="text-xs bg-white/50 dark:bg-black/20 rounded p-2">
+                    <div className="flex justify-between mb-1">
+                      <span className="text-yellow-700 dark:text-yellow-400">Amount</span>
+                      <span className="font-medium text-yellow-900 dark:text-yellow-200">{p.amount}</span>
+                    </div>
+                    {p.fee && (
+                      <div className="flex justify-between mb-1">
+                        <span className="text-yellow-700 dark:text-yellow-400">Fee</span>
+                        <span className="font-medium text-yellow-900 dark:text-yellow-200">{p.fee}</span>
+                      </div>
+                    )}
+                    <div className="mt-1 pt-1 border-t border-yellow-200/30 dark:border-yellow-700/30">
+                      <span className="text-[10px] font-mono text-yellow-600/80 dark:text-yellow-500/80 break-all">
+                        {p.id_type}: {p.id}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* External Transaction ID */}
       {externalTransactionId && (
         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
@@ -173,6 +228,9 @@ export function StatusTracker({
           </span>
         </p>
       )}
+
+      {/* Vertical Timeline */}
+      <Timeline status={status} />
     </div>
   )
 }
