@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+# Stellar Intel — pre-push hook.
+# Mirrors the CI `check` + `build` jobs (.github/workflows/ci.yml) so that a
+# push that passes locally also passes CI. Order matches CI: format → lint →
+# typecheck → tests → build.
+
+npm run format:check &&
+  npm run lint &&
+  npm run typecheck &&
+  npm run test &&
+  npm run build
