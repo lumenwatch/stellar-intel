@@ -3,7 +3,7 @@ import { renderHook, waitFor } from '@testing-library/react';
 import { createElement } from 'react';
 import { SWRConfig } from 'swr';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
-import type { ResolvedAnchor, RateComparison } from '@/types';
+import type { ResolvedAnchor } from '@/types';
 
 const wrapper = ({ children }: { children: React.ReactNode }) =>
   createElement(SWRConfig, { value: { provider: () => new Map() } }, children);
@@ -25,11 +25,13 @@ const mockAnchor = (sep24: boolean, sep38: boolean): ResolvedAnchor => ({
 
 beforeEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('capability gating in useAnchorRates', () => {
   it('short-circuits when neither sep24 nor sep38 is true', async () => {
-    const fetchSpy = vi.stubGlobal('fetch', vi.fn());
+    const fetchSpy = vi.fn();
+    vi.stubGlobal('fetch', fetchSpy);
     const anchor = mockAnchor(false, false);
 
     const { result } = renderHook(() => useAnchorRates('usdc-ngn', '100', anchor), { wrapper });
@@ -41,10 +43,8 @@ describe('capability gating in useAnchorRates', () => {
   });
 
   it('fetches when sep24 is true (but sep38 is false)', async () => {
-    const fetchSpy = vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }))
-    );
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }));
+    vi.stubGlobal('fetch', fetchSpy);
     const anchor = mockAnchor(true, false);
 
     renderHook(() => useAnchorRates('usdc-ngn', '100', anchor), { wrapper });
@@ -52,10 +52,8 @@ describe('capability gating in useAnchorRates', () => {
   });
 
   it('fetches when sep38 is true (but sep24 is false)', async () => {
-    const fetchSpy = vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }))
-    );
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }));
+    vi.stubGlobal('fetch', fetchSpy);
     const anchor = mockAnchor(false, true);
 
     renderHook(() => useAnchorRates('usdc-ngn', '100', anchor), { wrapper });
@@ -63,10 +61,8 @@ describe('capability gating in useAnchorRates', () => {
   });
 
   it('fetches when both sep24 and sep38 are true', async () => {
-    const fetchSpy = vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }))
-    );
+    const fetchSpy = vi.fn(async () => ({ ok: true, json: async () => ({ rates: {} }) }));
+    vi.stubGlobal('fetch', fetchSpy);
     const anchor = mockAnchor(true, true);
 
     renderHook(() => useAnchorRates('usdc-ngn', '100', anchor), { wrapper });

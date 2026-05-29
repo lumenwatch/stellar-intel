@@ -33,8 +33,7 @@ export function useAnchorRates(
   amount: string,
   anchor?: ResolvedAnchor
 ): UseAnchorRatesResult {
-  const capable =
-    anchor === undefined || anchor.capabilities.sep24 || anchor.capabilities.sep38;
+  const capable = anchor === undefined || anchor.capabilities.sep24 || anchor.capabilities.sep38;
 
   const { data, error, isLoading, mutate } = useSWR<RateComparison, Error>(
     capable ? ['/api/rates', corridorId, amount] : null,

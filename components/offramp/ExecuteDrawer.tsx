@@ -41,11 +41,19 @@ interface ExecuteDrawerProps {
   amount: string;
   publicKey: string;
   onClose: () => void;
+  /** Fired once the withdrawal is initiated so the page can mount StatusTracker. */
+  onExecuteStarted?: (transactionId: string, transferServer: string, jwt: string) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function ExecuteDrawer({ rate, amount, publicKey, onClose }: ExecuteDrawerProps) {
+export function ExecuteDrawer({
+  rate,
+  amount,
+  publicKey,
+  onClose,
+  onExecuteStarted,
+}: ExecuteDrawerProps) {
   const [step, setStep] = useState<Step>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [txHash, setTxHash] = useState<string | null>(null);
@@ -79,6 +87,9 @@ export function ExecuteDrawer({ rate, amount, publicKey, onClose }: ExecuteDrawe
       // Step 3 — KYC popup
       setStep('kyc');
       const transactionId = await openWithdrawPopup(withdrawResp.url);
+
+      // Hand the tracking identifiers back to the page so StatusTracker mounts.
+      onExecuteStarted?.(transactionId, transferServer, auth.jwt);
 
       // Step 4 — Fetch transaction record
       setStep('building');

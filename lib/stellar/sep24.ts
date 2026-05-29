@@ -1,5 +1,5 @@
 import { getTransferServer } from './sep1';
-import { getAnchorsByCorridorId, getCorridorById } from './anchors';
+import { getAnchorsByCorridorId } from './anchors';
 import { computeTotalReceived } from '@/lib/utils';
 import type {
   Sep24FeeParams,
@@ -67,7 +67,6 @@ export async function fetchAllAnchorFees(
   corridorId: string
 ): Promise<PromiseSettledResult<AnchorRate>[]> {
   const anchors = getAnchorsByCorridorId(corridorId);
-  const corridor = getCorridorById(corridorId);
 
   return Promise.allSettled(
     anchors.map(async (anchor): Promise<AnchorRate> => {
