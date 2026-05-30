@@ -4,7 +4,13 @@
 > oracle to AI agents. Same primitives as the web UI, one network hop away.
 > An agent can price, compare, and execute an off-ramp in five lines.
 
-Status: **wave 2.3 / v2.x** — spec stabilising, reference server shipping.
+> **Status: 🛠️ Planned — not yet built.** There is no `@stellarintel/mcp`
+> package on npm and no reference server running today. `claude mcp add`
+> will **not** work yet. This document is a forward spec: the tools, install
+> steps, and prompts below describe the intended surface, not shipped code.
+> The MCP scaffold is scheduled for **wave 1.2** and general availability for
+> **v4**. See [ROADMAP.md](ROADMAP.md) for what ships on `main` today versus
+> what is planned.
 
 ---
 

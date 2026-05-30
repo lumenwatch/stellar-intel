@@ -18,10 +18,6 @@ Built for users sending money home across Africa, Latin America, and Southeast
 Asia via Stellar anchors.
 
 <p align="center">
-  <a href="https://stellar-intel.vercel.app">
-    <img src="docs/images/hero.png" alt="Stellar Intel off-ramp comparison — live anchor quotes, fee breakdown, and one-click execution" width="860" />
-  </a>
-  <br />
   <em>Live demo → <a href="https://stellar-intel.vercel.app">stellar-intel.vercel.app</a></em>
 </p>
 
@@ -63,6 +59,14 @@ the anchor that can satisfy it. Three primitives, one product:
 3. **Agent surface.** An MCP server exposes the router and oracle to AI
    agents, so an agent can price, compare, and execute an off-ramp in five
    lines — the same primitives used by the web UI.
+
+> **What ships today.** Only the single-anchor off-ramp path is live on
+> `main` — live rate comparison plus SEP-10/24 execute and status tracking.
+> The SEP-38 firm-quote intent router (primitive 1), the reputation oracle
+> (2), and the agent surface (3) are designed and specced but **not yet
+> built**. See [docs/ROADMAP.md](docs/ROADMAP.md) for the exact shipped-vs-
+> planned breakdown, and the per-module ✅/🛠️ markers in
+> [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 Non-custodial by construction: every leg is signed by the user, the anchor
 takes custody under SEP-24, Stellar enforces atomicity. We never touch funds.

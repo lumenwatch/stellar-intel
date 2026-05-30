@@ -4,8 +4,13 @@
 > oracle, and canonical JSON + Ed25519 signing. The same package powers
 > the web UI, the MCP server, and external integrators.
 
-Status: **wave 2.3 / v2.x** — draft published; surface stable within v1,
-minor additions continuing into v2.
+> **Status: 🛠️ Planned — not yet published.** `@stellarintel/sdk` is **not on
+> npm today** and nothing in this document is installable. This is a forward
+> spec: the package, its modules, and every snippet below describe the
+> intended surface, not shipped code. The SDK scaffold is scheduled for
+> **wave 1.2** and general availability for **v4**. See
+> [ROADMAP.md](ROADMAP.md) for what ships on `main` today versus what is
+> planned.
 
 ---
 

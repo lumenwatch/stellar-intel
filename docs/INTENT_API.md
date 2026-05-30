@@ -10,6 +10,13 @@
 > consumer — the web app, the SDK, the MCP server, a third-party integrator,
 > an AI agent.
 
+> **Status: 🛠️ Planned (wave 1.2) — not yet implemented.** There is no
+> `app/api/` surface on `main` today; the off-ramp ships as a single-anchor
+> UI flow without these endpoints. The intent schema, endpoints, signing
+> rules, and examples below are the design contract the v1.2 router wave
+> implements — they are not live. See [ROADMAP.md](ROADMAP.md) for what ships
+> today versus what is planned.
+
 ---
 
 ## Table of contents
