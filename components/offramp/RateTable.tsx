@@ -5,13 +5,23 @@ import type { RateComparison, AnchorRate } from '@/types'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { QuotePill } from '@/components/ui/QuotePill'
 
+function formatSettlementTime(rate: AnchorRate): string {
+  const p50 = (rate as AnchorRate & { p50SettlementMs?: number }).p50SettlementMs;
+  if (p50 != null && p50 > 0) {
+    const mins = Math.round(p50 / 60000);
+    return mins < 1 ? '< 1 min' : `~${mins} min`;
+  }
+  return '—';
+}
+
 interface RateTableProps {
-  rates: RateComparison | undefined
-  isLoading: boolean
-  refreshInflight?: boolean
-  error: string | undefined
-  onSelectAnchor: (rate: AnchorRate) => void
-  onRefresh?: () => void
+  rates: RateComparison | undefined;
+  isLoading: boolean;
+  refreshInflight?: boolean;
+  error: string | undefined;
+  onSelectAnchor: (rate: AnchorRate) => void;
+  executeDisabled?: boolean;
+  onRefresh?: () => void;
 }
 
 export function RateTable({ rates, isLoading, refreshInflight, error, onSelectAnchor }: RateTableProps) {
@@ -30,7 +40,7 @@ export function RateTable({ rates, isLoading, refreshInflight, error, onSelectAn
       <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
         <Skeleton rows={5} />
       </div>
-    )
+    );
   }
 
   return (
@@ -49,7 +59,11 @@ export function RateTable({ rates, isLoading, refreshInflight, error, onSelectAn
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
           Refresh
         </button>
@@ -134,11 +148,10 @@ export function RateTable({ rates, isLoading, refreshInflight, error, onSelectAn
                 </td>
                 <td className="px-4 py-3 text-right">
                   <button
-                    onClick={() => onSelectAnchor(rate)}
-                    disabled={isUnavailable}
-                    className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                    onClick={() => window.location.reload()}
+                    className="text-xs font-medium text-blue-600 underline hover:text-blue-700"
                   >
-                    Off-ramp
+                    Retry
                   </button>
                 </td>
               </tr>
@@ -177,5 +190,5 @@ export function RateTable({ rates, isLoading, refreshInflight, error, onSelectAn
       </table>
       </div>
     </div>
-  )
+  );
 }

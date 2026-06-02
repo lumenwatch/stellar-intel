@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
-import { RateTable } from '@/components/offramp/RateTable'
-import type { RateComparison, AnchorRate } from '@/types'
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { RateTable } from '@/components/offramp/RateTable';
+import type { RateComparison, AnchorRate } from '@/types';
 
 const makeRate = (anchorId: string, totalReceived: number): AnchorRate => ({
   anchorId,
@@ -13,14 +13,14 @@ const makeRate = (anchorId: string, totalReceived: number): AnchorRate => ({
   totalReceived,
   source: 'sep24-fee' as const,
   updatedAt: new Date(),
-})
+});
 
 const mockRates: RateComparison = {
   corridorId: 'usdc-ngn',
   bestRateId: 'cowrie',
   pending: [],
   rates: [makeRate('cowrie', 154840), makeRate('flutterwave', 153260)],
-}
+};
 
 describe('RateTable', () => {
   it('renders a skeleton rows when isLoading is true', () => {
@@ -34,17 +34,17 @@ describe('RateTable', () => {
   it('renders the correct number of data rows from a RateComparison with two anchors', () => {
     render(
       <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
-    )
-    const buttons = screen.getAllByRole('button', { name: 'Off-ramp' })
-    expect(buttons).toHaveLength(2)
-  })
+    );
+    const buttons = screen.getAllByRole('button', { name: 'Off-ramp' });
+    expect(buttons).toHaveLength(2);
+  });
 
   it('the best rate row includes the "Best Rate" badge', () => {
     render(
       <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
-    )
-    expect(screen.getByText('Best Rate')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getByText('Best Rate')).toBeInTheDocument();
+  });
 
   it('the error state renders the error message string', () => {
     render(
@@ -54,12 +54,12 @@ describe('RateTable', () => {
         error="Failed to fetch rates"
         onSelectAnchor={vi.fn()}
       />
-    )
-    expect(screen.getByText('Failed to fetch rates')).toBeInTheDocument()
-  })
+    );
+    expect(screen.getByText('Failed to fetch rates')).toBeInTheDocument();
+  });
 
   it('clicking the "Off-ramp" button calls onSelectAnchor with the correct AnchorRate', () => {
-    const onSelectAnchor = vi.fn()
+    const onSelectAnchor = vi.fn();
     render(
       <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={onSelectAnchor} />
     )
@@ -69,10 +69,10 @@ describe('RateTable', () => {
   })
 
   it('renders the empty state message when rates array is empty', () => {
-    const emptyRates: RateComparison = { ...mockRates, rates: [], bestRateId: '' }
+    const emptyRates: RateComparison = { ...mockRates, rates: [], bestRateId: '' };
     render(
       <RateTable rates={emptyRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
-    )
-    expect(screen.getByText('No rates available for this corridor.')).toBeInTheDocument()
-  })
-})
+    );
+    expect(screen.getByText('No rates available for this corridor.')).toBeInTheDocument();
+  });
+});
