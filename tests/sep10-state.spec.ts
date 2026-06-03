@@ -32,8 +32,7 @@ const WEB_AUTH_ENDPOINT = 'https://anchor.example.com/auth'
 const PUBLIC_KEY = Keypair.random().publicKey()
 const HOME_DOMAIN = 'anchor.example.com'
 
-const VALID_CHALLENGE_XDR =
-  'AAAABQAAAACdIFgKKF2vx6r8VJwDi61SEfA/P6kyxyXjKKwwlsxPkwAAAGQAJ4AaAAAAJQAAAAAAAAAAAAAAAEAAAAC3AAAAAAAAAA0AAAABJNfYx0XwJ6hkX2B70u5T51/4LqAPCdAVRmKy6A0YBMsAAAAAAAAAAQAAAAA'
+let VALID_CHALLENGE_XDR = ''
 
 function createMockChallenge(overrides?: Partial<Sep10Challenge>): Sep10Challenge {
   const keypair = Keypair.random()
@@ -51,13 +50,19 @@ function createMockChallenge(overrides?: Partial<Sep10Challenge>): Sep10Challeng
     .setTimeout(300)
     .build()
 
+  const xdr = tx.toXDR()
+  VALID_CHALLENGE_XDR = xdr
+
   return {
-    transaction: VALID_CHALLENGE_XDR,
+    transaction: xdr,
     network_passphrase: Networks.PUBLIC,
     parsed: tx,
     ...overrides,
   }
 }
+
+// Initialize VALID_CHALLENGE_XDR
+createMockChallenge()
 
 // ─── Mock fetch ───────────────────────────────────────────────────────────────
 
