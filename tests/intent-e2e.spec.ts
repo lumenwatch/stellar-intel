@@ -4,6 +4,7 @@ import { buildWithdrawPayment, signAndSubmitPayment, horizonServer } from '@/lib
 
 vi.mock('@stellar/freighter-api', () => ({
   signTransaction: vi.fn(),
+  getNetwork: vi.fn(async () => ({ error: false, network: '', networkPassphrase: '' })),
 }));
 
 const sourceKeypair = Keypair.random();

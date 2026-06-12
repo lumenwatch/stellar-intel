@@ -80,11 +80,11 @@ export async function fetchRates(
           .then((r) => {
             options?.onQuoteArrived?.(r);
           })
-          .catch((err) => {
+          .catch(() => {
             // Ignore background errors
           });
       }
-    } catch (err) {
+    } catch {
       // Error fetching before timeout
       const pIdx = pending.findIndex((p) => p.anchorId === anchor.id);
       if (pIdx > -1) pending.splice(pIdx, 1);

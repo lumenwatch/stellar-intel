@@ -5,6 +5,7 @@ import { horizonServer } from '@/lib/stellar/horizon';
 
 vi.mock('@stellar/freighter-api', () => ({
   signTransaction: vi.fn(),
+  getNetwork: vi.fn(async () => ({ error: false, network: '', networkPassphrase: '' })),
 }));
 
 beforeEach(() => {

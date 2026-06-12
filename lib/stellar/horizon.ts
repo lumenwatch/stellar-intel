@@ -242,7 +242,7 @@ export async function getStrictSendPaths(
 
     // Parsed asset data
     const intermediates = r.path
-      .map((p: any) => ({
+      .map((p) => ({
         code: p.asset_code ?? 'XLM',
         issuer: p.asset_issuer ?? '',
         name: p.asset_code ?? 'XLM',

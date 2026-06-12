@@ -29,6 +29,7 @@ const mockResolvedAnchor = (domain: string) => ({
 
 vi.mock('@stellar/freighter-api', () => ({
   signTransaction: vi.fn(),
+  getNetwork: vi.fn(async () => ({ error: false, network: '', networkPassphrase: '' })),
 }));
 
 function makeJwt(expSeconds: number): string {

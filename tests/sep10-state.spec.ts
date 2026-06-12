@@ -15,6 +15,7 @@ vi.mock('@stellar/freighter-api', () => {
   return {
     getPublicKey: vi.fn(() => 'GCLIENT...'),
     signTransaction: vi.fn(),
+    getNetwork: vi.fn(async () => ({ error: false, network: '', networkPassphrase: '' })),
     isConnected: vi.fn(() => true),
   };
 });

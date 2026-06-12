@@ -1,9 +1,9 @@
 import { Networks, TransactionBuilder } from '@stellar/stellar-sdk';
 import type { Transaction, FeeBumpTransaction } from '@stellar/stellar-sdk';
-import { getWebAuthEndpoint, resolveAnchor } from './sep1';
+import { resolveAnchor } from './sep1';
 import { getCachedJwt, setCachedJwt, invalidateCachedJwt } from './jwt-cache';
 import type { ResolvedAnchor, Sep10Auth } from '@/types';
-import { UserRejectedError, WalletError } from './errors';
+import { UserRejectedError, WalletError, ErrorCode } from './errors';
 
 export { invalidateCachedJwt, getCachedJwt } from './jwt-cache';
 
@@ -32,7 +32,8 @@ export class NetworkMismatchError extends WalletError {
     public readonly walletNetwork: string
   ) {
     super(
-      `Switch network in Freighter to ${expectedNetwork}. It is currently set to ${walletNetwork}.`
+      `Switch network in Freighter to ${expectedNetwork}. It is currently set to ${walletNetwork}.`,
+      ErrorCode.NETWORK_MISMATCH
     );
     this.name = 'NetworkMismatchError';
   }

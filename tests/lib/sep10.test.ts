@@ -40,6 +40,7 @@ const MOCK_RESOLVED_ANCHOR = {
 
 vi.mock('@stellar/freighter-api', () => ({
   signTransaction: vi.fn(),
+  getNetwork: vi.fn(async () => ({ error: false, network: '', networkPassphrase: '' })),
 }));
 
 beforeEach(() => {

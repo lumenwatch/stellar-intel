@@ -15,35 +15,43 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * - headers/response.headers check (e.g. headers.get('Retry-After') or headers['retry-after'])
  * - Handles both number-of-seconds and HTTP date string formats.
  */
-function getRetryAfterMs(error: any): number | null {
+interface RetryableError {
+  retryAfter?: number | string;
+  retry_after?: number | string;
+  headers?: unknown;
+  response?: { headers?: unknown };
+}
+
+function getRetryAfterMs(error: unknown): number | null {
   if (!error || typeof error !== 'object') return null;
+  const e = error as RetryableError;
 
   // 1. Direct retryAfter / retry_after property
-  if (typeof error.retryAfter === 'number') {
-    return error.retryAfter;
+  if (typeof e.retryAfter === 'number') {
+    return e.retryAfter;
   }
-  if (typeof error.retryAfter === 'string') {
-    const ms = parseRetryAfterValue(error.retryAfter);
+  if (typeof e.retryAfter === 'string') {
+    const ms = parseRetryAfterValue(e.retryAfter);
     if (ms !== null) return ms;
   }
-  if (typeof error.retry_after === 'number') {
-    return error.retry_after;
+  if (typeof e.retry_after === 'number') {
+    return e.retry_after;
   }
-  if (typeof error.retry_after === 'string') {
-    const ms = parseRetryAfterValue(error.retry_after);
+  if (typeof e.retry_after === 'string') {
+    const ms = parseRetryAfterValue(e.retry_after);
     if (ms !== null) return ms;
   }
 
   // 2. Error headers
-  if (error.headers) {
-    const ms = getRetryAfterFromHeaders(error.headers);
+  if (e.headers) {
+    const ms = getRetryAfterFromHeaders(e.headers);
     if (ms !== null) return ms;
   }
 
   // 3. Error response headers
-  if (error.response && typeof error.response === 'object') {
-    if (error.response.headers) {
-      const ms = getRetryAfterFromHeaders(error.response.headers);
+  if (e.response && typeof e.response === 'object') {
+    if (e.response.headers) {
+      const ms = getRetryAfterFromHeaders(e.response.headers);
       if (ms !== null) return ms;
     }
   }
@@ -51,14 +59,15 @@ function getRetryAfterMs(error: any): number | null {
   return null;
 }
 
-function getRetryAfterFromHeaders(headers: any): number | null {
-  if (!headers) return null;
+function getRetryAfterFromHeaders(headers: unknown): number | null {
+  if (!headers || typeof headers !== 'object') return null;
   let value: string | null = null;
+  const h = headers as { get?: (key: string) => string | null; [key: string]: unknown };
 
-  if (typeof headers.get === 'function') {
-    value = headers.get('Retry-After') || headers.get('retry-after');
-  } else if (typeof headers === 'object') {
-    value = headers['Retry-After'] || headers['retry-after'] || null;
+  if (typeof h.get === 'function') {
+    value = h.get('Retry-After') || h.get('retry-after');
+  } else {
+    value = (h['Retry-After'] as string) || (h['retry-after'] as string) || null;
   }
 
   if (value) {
