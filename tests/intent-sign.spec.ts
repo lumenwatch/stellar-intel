@@ -27,13 +27,16 @@ const INTENT: Intent = {
 };
 
 const MOCK_SIGNATURE = 'base64mocksignaturestring==';
-const EXPECTED_HASH = hashIntent(INTENT);
+// hashIntent is async; resolve it before each test so comparisons use the
+// string digest rather than a pending Promise.
+let EXPECTED_HASH: string;
 
 beforeEach(async () => {
   vi.clearAllMocks();
+  EXPECTED_HASH = await hashIntent(INTENT);
   const api = await getApi();
-  vi.mocked(api.signMessage).mockResolvedValue({ signedMessage: MOCK_SIGNATURE });
-  vi.mocked(api.getAddress).mockResolvedValue({ address: SENDER });
+  vi.mocked(api.signMessage).mockResolvedValue({ signedMessage: MOCK_SIGNATURE } as never);
+  vi.mocked(api.getAddress).mockResolvedValue({ address: SENDER } as never);
 });
 
 // ─── Happy path ────────────────────────────────────────────────────────────────
