@@ -23,11 +23,10 @@ export class UserRejectedError extends WalletError {
  */
 export class UserError extends WalletError {
   constructor(message: string) {
-    super(message)
-    this.name = 'UserError'
+    super(message);
+    this.name = 'UserError';
   }
 }
-
 
 /**
  * Thrown when there is a network mismatch (e.g. Testnet vs Mainnet)

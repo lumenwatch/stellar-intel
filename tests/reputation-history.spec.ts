@@ -66,7 +66,9 @@ describe('GET /api/reputation/[anchor]/history', () => {
     const body = await res.json();
     expect(() => HistoryResponseSchema.parse(body)).not.toThrow();
     expect(body.window).toBe('7d');
-    expect(body.buckets.reduce((n: number, b: { sampleCount: number }) => n + b.sampleCount, 0)).toBe(2);
+    expect(
+      body.buckets.reduce((n: number, b: { sampleCount: number }) => n + b.sampleCount, 0)
+    ).toBe(2);
   });
 
   it('defaults to the 30d window when none is supplied', async () => {

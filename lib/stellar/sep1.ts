@@ -111,22 +111,22 @@ function requireTomlField(
  * Priority: ORG_SUPPORT_URL → mailto:ORG_SUPPORT_EMAIL → ORG_URL (https only).
  */
 export function resolveAnchorSupportHref(toml: Sep1TomlData): string | null {
-  const supportUrl = toml.ORG_SUPPORT_URL
+  const supportUrl = toml.ORG_SUPPORT_URL;
   if (supportUrl?.startsWith('https://') || supportUrl?.startsWith('http://')) {
-    return supportUrl
+    return supportUrl;
   }
 
-  const email = toml.ORG_SUPPORT_EMAIL
+  const email = toml.ORG_SUPPORT_EMAIL;
   if (email) {
-    return `mailto:${email}`
+    return `mailto:${email}`;
   }
 
-  const orgUrl = toml.ORG_URL
+  const orgUrl = toml.ORG_URL;
   if (orgUrl?.startsWith('https://')) {
-    return orgUrl
+    return orgUrl;
   }
 
-  return null
+  return null;
 }
 
 /**

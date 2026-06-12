@@ -124,6 +124,8 @@ export function buildRateComparison(
     corridorId,
     rates: ranked,
     bestRateId: best?.anchorId ?? '',
+    // All inputs are already settled, so nothing remains pending.
+    pending: [],
   };
 }
 

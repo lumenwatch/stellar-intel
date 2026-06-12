@@ -212,9 +212,7 @@ describe('rates refresh — near-expiry watcher respects visibility', () => {
       ratesMock.mockClear();
 
       // Wait 3 poll cycles — watcher must not fire while hidden
-      await new Promise((resolve) =>
-        setTimeout(resolve, EXPIRY_POLL_INTERVAL_MS * 3 + 100)
-      );
+      await new Promise((resolve) => setTimeout(resolve, EXPIRY_POLL_INTERVAL_MS * 3 + 100));
 
       expect(ratesMock).not.toHaveBeenCalled();
     },

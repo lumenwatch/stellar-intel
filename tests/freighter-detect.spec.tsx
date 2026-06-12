@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor, act } from '@testing-library/react'
-import { useFreighter } from '@/hooks/useFreighter'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { renderHook, waitFor, act } from '@testing-library/react';
+import { useFreighter } from '@/hooks/useFreighter';
 
 /**
  * Tests for mid-session Freighter install detection (#041).
@@ -19,148 +19,194 @@ const mockApi = vi.hoisted(() => ({
   getNetwork: vi.fn(),
   requestAccess: vi.fn(),
   WatchWalletChanges: class {
-    watch = vi.fn()
-    stop = vi.fn()
+    watch = vi.fn();
+    stop = vi.fn();
   },
-}))
+}));
 
-vi.mock('@stellar/freighter-api', () => mockApi)
+vi.mock('@stellar/freighter-api', () => mockApi);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function stubNotInstalled() {
-  mockApi.isConnected.mockRejectedValue(new Error('Freighter not found'))
+  mockApi.isConnected.mockRejectedValue(new Error('Freighter not found'));
 }
 
 function stubInstalled() {
-  mockApi.isConnected.mockResolvedValue({ isConnected: false, error: null })
+  mockApi.isConnected.mockResolvedValue({ isConnected: false, error: null });
 }
 
 beforeEach(() => {
-  vi.useFakeTimers()
-  vi.clearAllMocks()
-  stubNotInstalled()
-})
+  vi.useFakeTimers();
+  vi.clearAllMocks();
+  stubNotInstalled();
+});
 
 afterEach(() => {
-  vi.useRealTimers()
-})
+  vi.useRealTimers();
+});
 
 // ─── Early polling phase (0–30s) ─────────────────────────────────────────────
 
 describe('mid-session install detection — early polling', () => {
   it('detects install within 2s when extension appears after mount', async () => {
-    const { result } = renderHook(() => useFreighter())
+    const { result } = renderHook(() => useFreighter());
 
     // Wait for initial detect() to settle with extension absent
-    await act(async () => { await Promise.resolve() })
-    expect(result.current.isInstalled).toBe(false)
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current.isInstalled).toBe(false);
 
     // Extension becomes available
-    stubInstalled()
+    stubInstalled();
 
     // Advance 2s — early poll fires
-    await act(async () => { vi.advanceTimersByTime(2000) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      vi.advanceTimersByTime(2000);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    expect(result.current.isInstalled).toBe(true)
-  })
+    expect(result.current.isInstalled).toBe(true);
+  });
 
   it('does not require a focus event to detect install within 30s', async () => {
-    const { result } = renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    const { result } = renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    stubInstalled()
+    stubInstalled();
 
     // Advance 4s — two early polls, no user interaction needed
-    await act(async () => { vi.advanceTimersByTime(4000) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      vi.advanceTimersByTime(4000);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    expect(result.current.isInstalled).toBe(true)
-  })
-})
+    expect(result.current.isInstalled).toBe(true);
+  });
+});
 
 // ─── Post-30s event-driven phase ─────────────────────────────────────────────
 
 describe('mid-session install detection — event-driven (after 30s)', () => {
   it('detects install on window focus event after 30s', async () => {
-    const { result } = renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    const { result } = renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // Advance past 30s to switch to event-driven phase
-    await act(async () => { vi.advanceTimersByTime(30_001) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      vi.advanceTimersByTime(30_001);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // Extension becomes available
-    stubInstalled()
+    stubInstalled();
 
     // Fire focus event
-    await act(async () => { window.dispatchEvent(new Event('focus')) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      window.dispatchEvent(new Event('focus'));
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    expect(result.current.isInstalled).toBe(true)
-  })
+    expect(result.current.isInstalled).toBe(true);
+  });
 
   it('detects install on visibilitychange event after 30s', async () => {
-    const { result } = renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    const { result } = renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    await act(async () => { vi.advanceTimersByTime(30_001) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      vi.advanceTimersByTime(30_001);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    stubInstalled()
+    stubInstalled();
 
-    await act(async () => { document.dispatchEvent(new Event('visibilitychange')) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    expect(result.current.isInstalled).toBe(true)
-  })
+    expect(result.current.isInstalled).toBe(true);
+  });
 
   it('does not fire polls after 30s without a user event', async () => {
-    renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    await act(async () => { vi.advanceTimersByTime(30_001) })
+    await act(async () => {
+      vi.advanceTimersByTime(30_001);
+    });
 
-    const callsBefore = mockApi.isConnected.mock.calls.length
-    stubInstalled()
+    const callsBefore = mockApi.isConnected.mock.calls.length;
+    stubInstalled();
 
     // Advance another 10s — no new polls should fire
-    await act(async () => { vi.advanceTimersByTime(10_000) })
-    await act(async () => { await Promise.resolve() })
+    await act(async () => {
+      vi.advanceTimersByTime(10_000);
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // isConnected should not have been called again without an event
-    expect(mockApi.isConnected.mock.calls.length).toBe(callsBefore)
-  })
-})
+    expect(mockApi.isConnected.mock.calls.length).toBe(callsBefore);
+  });
+});
 
 // ─── Cleanup ─────────────────────────────────────────────────────────────────
 
 describe('mid-session install detection — cleanup', () => {
   it('removes event listeners on unmount', async () => {
-    const removeSpy = vi.spyOn(window, 'removeEventListener')
-    const docRemoveSpy = vi.spyOn(document, 'removeEventListener')
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+    const docRemoveSpy = vi.spyOn(document, 'removeEventListener');
 
-    const { unmount } = renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    const { unmount } = renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
     // Enter event-driven phase
-    await act(async () => { vi.advanceTimersByTime(30_001) })
+    await act(async () => {
+      vi.advanceTimersByTime(30_001);
+    });
 
-    unmount()
+    unmount();
 
-    expect(removeSpy).toHaveBeenCalledWith('focus', expect.any(Function))
-    expect(docRemoveSpy).toHaveBeenCalledWith('visibilitychange', expect.any(Function))
-  })
+    expect(removeSpy).toHaveBeenCalledWith('focus', expect.any(Function));
+    expect(docRemoveSpy).toHaveBeenCalledWith('visibilitychange', expect.any(Function));
+  });
 
   it('clears early interval on unmount before 30s', async () => {
-    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval')
+    const clearIntervalSpy = vi.spyOn(globalThis, 'clearInterval');
 
-    const { unmount } = renderHook(() => useFreighter())
-    await act(async () => { await Promise.resolve() })
+    const { unmount } = renderHook(() => useFreighter());
+    await act(async () => {
+      await Promise.resolve();
+    });
 
-    unmount()
+    unmount();
 
-    expect(clearIntervalSpy).toHaveBeenCalled()
-  })
-})
+    expect(clearIntervalSpy).toHaveBeenCalled();
+  });
+});

@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest';
+import { NextRequest } from 'next/server';
 import { GET } from '@/app/api/reputation/leaderboard/route';
 
 interface LeaderboardEntry {
@@ -9,7 +10,7 @@ interface LeaderboardEntry {
 
 describe('GET /api/reputation/leaderboard', () => {
   test('returns all anchors ordered by composite descending by default', async () => {
-    const response = await GET(new Request('http://localhost/api/reputation/leaderboard'));
+    const response = await GET(new NextRequest('http://localhost/api/reputation/leaderboard'));
     expect(response.status).toBe(200);
 
     const body = await response.json();
@@ -22,7 +23,7 @@ describe('GET /api/reputation/leaderboard', () => {
 
   test('filters anchors by corridor and sorts by fill rate ascending', async () => {
     const response = await GET(
-      new Request(
+      new NextRequest(
         'http://localhost/api/reputation/leaderboard?corridor=usdc-ngn&sort=fillRate&direction=asc'
       )
     );
