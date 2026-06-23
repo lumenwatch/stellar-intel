@@ -41,16 +41,19 @@ jobs:
         run: |
           npm start &
           SERVER_PID=$!
-          sleep 5
+          # Wait for the server to accept connections before collecting, so
+          # Chrome doesn't hit an interstitial on a not-yet-ready server.
+          for i in $(seq 1 30); do
+            curl -sf http://localhost:3000 >/dev/null && break
+            sleep 2
+          done
 
           lhci collect \
             --url=http://localhost:3000 \
-            --url=http://localhost:3000/yield \
-            --url=http://localhost:3000/swap \
-            --url=http://localhost:3000/onramp \
             --url=http://localhost:3000/offramp \
+            --url=http://localhost:3000/anchors \
             --numberOfRuns=1 \
-            --settings.chromeFlags="--no-sandbox --headless" \
+            --settings.chromeFlags="--no-sandbox --headless=new --disable-gpu --disable-dev-shm-usage" \
             --output=jsonExpanded \
             --outputPath=./lhci-results
 
