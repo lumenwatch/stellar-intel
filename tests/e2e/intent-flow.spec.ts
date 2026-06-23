@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Networks, TransactionBuilder, Keypair, BASE_FEE } from '@stellar/stellar-sdk';
 import type { Transaction } from '@stellar/stellar-sdk';
+import type { Sep24Transaction } from '@/types';
 
 // ─── Mock setup ───────────────────────────────────────────────────────────────
 
@@ -84,6 +85,12 @@ const RESOLVED_ANCHOR = {
   WEB_AUTH_ENDPOINT: 'https://test-anchor.example/auth',
   SIGNING_KEY: ANCHOR_PUBLIC_KEY,
   NETWORK_PASSPHRASE: Networks.PUBLIC,
+  domain: 'test-anchor.example',
+  ANCHOR_QUOTE_SERVER: null,
+  ORG_URL: null,
+  ORG_SUPPORT_EMAIL: null,
+  ORG_SUPPORT_URL: null,
+  CURRENCIES: [],
   capabilities: {
     sep10: true,
     sep24: true,
@@ -105,20 +112,26 @@ const MOCK_WITHDRAW_RESPONSE = {
   id: 'txn-test-123',
 };
 
+// Shape returned by getWithdrawTransactionRecord (anchor account + memo).
 const MOCK_TRANSACTION_RECORD = {
-  id: 'txn-test-123',
-  status: 'pending_user_transfer_start' as const,
   withdrawAnchorAccount: ANCHOR_PUBLIC_KEY,
-  withdrawMemo: 'test-memo-123',
-  withdrawMemoType: 'text' as const,
+  memo: 'test-memo-123',
+  memoType: 'text',
+};
+
+// Shape returned by getSep24Transaction (live withdrawal status record).
+const MOCK_PENDING_TX: Sep24Transaction = {
+  id: 'txn-test-123',
+  status: 'pending_user_transfer_start',
   amountIn: '100',
   amountOut: '158000',
   amountFee: '2',
+  updatedAt: new Date(),
 };
 
-const MOCK_COMPLETED_TRANSACTION = {
-  ...MOCK_TRANSACTION_RECORD,
-  status: 'completed' as const,
+const MOCK_COMPLETED_TRANSACTION: Sep24Transaction = {
+  ...MOCK_PENDING_TX,
+  status: 'completed',
   stellarTransactionId: 'test-stellar-tx-hash',
 };
 
@@ -155,28 +168,32 @@ async function executeIntentFlow(amount: string, anchorId: string): Promise<Mock
   expect(auth.expiresAt.getTime()).toBeGreaterThan(Date.now());
 
   // Step 3: Initiate withdrawal (SEP-24)
+  const transferServer = resolvedAnchor.TRANSFER_SERVER_SEP0024!;
   const withdrawResp = await sep24.initiateWithdraw(resolvedAnchor, {
     assetCode: resolvedAnchor.assetCode,
+    assetIssuer: resolvedAnchor.assetIssuer,
     amount,
+    account: USER_PUBLIC_KEY,
+    jwt: auth.jwt,
   });
   expect(withdrawResp.id).toBeDefined();
 
   // Step 4: Get transaction record (includes anchor account + memo)
   const txRecord = await sep24.getWithdrawTransactionRecord(
-    resolvedAnchor.TRANSFER_SERVER_SEP0024,
+    transferServer,
     withdrawResp.id,
     auth.jwt
   );
   expect(txRecord.withdrawAnchorAccount).toBeDefined();
-  expect(txRecord.withdrawMemo).toBeDefined();
+  expect(txRecord.memo).toBeDefined();
 
   // Step 5: Build unsigned payment transaction
   const unsignedTx = await horizon.buildWithdrawPayment({
     sourcePublicKey: USER_PUBLIC_KEY,
     anchorAccount: txRecord.withdrawAnchorAccount,
     amount,
-    memo: txRecord.withdrawMemo,
-    memoType: txRecord.withdrawMemoType,
+    memo: txRecord.memo,
+    memoType: txRecord.memoType,
     assetCode: resolvedAnchor.assetCode,
     assetIssuer: resolvedAnchor.assetIssuer,
   });
@@ -187,21 +204,17 @@ async function executeIntentFlow(amount: string, anchorId: string): Promise<Mock
   expect(signedTx).toBeDefined();
 
   // Step 7: Submit to Stellar
-  const submitResult = await horizon.signAndSubmitPayment(unsignedTx, USER_PUBLIC_KEY);
+  const submitResult = await horizon.signAndSubmitPayment(unsignedTx);
   expect(submitResult.hash).toBeDefined();
 
   // Step 8: Poll for completion
-  let completedTx = txRecord;
-  let pollCount = 0;
+  let completedTx = await sep24.getSep24Transaction(transferServer, withdrawResp.id, auth.jwt);
+  let pollCount = 1;
   const maxPolls = 10;
 
   while (!['completed', 'error', 'refunded'].includes(completedTx.status) && pollCount < maxPolls) {
     await new Promise((resolve) => setTimeout(resolve, 100));
-    completedTx = await sep24.getSep24Transaction(
-      resolvedAnchor.TRANSFER_SERVER_SEP0024,
-      withdrawResp.id,
-      auth.jwt
-    );
+    completedTx = await sep24.getSep24Transaction(transferServer, withdrawResp.id, auth.jwt);
     pollCount++;
   }
 
@@ -237,10 +250,11 @@ describe('Intent Flow End-to-End', () => {
     });
     vi.mocked(freighter.getNetwork).mockResolvedValue({
       network: 'PUBLIC',
-      error: null,
+      networkPassphrase: Networks.PUBLIC,
     });
     vi.mocked(freighter.signTransaction).mockResolvedValue({
-      signedTransaction: createMockUnsignedPaymentXDR(),
+      signedTxXdr: createMockUnsignedPaymentXDR(),
+      signerAddress: USER_PUBLIC_KEY,
     });
 
     // Setup SEP-10 mocks
@@ -250,7 +264,7 @@ describe('Intent Flow End-to-End', () => {
     vi.mocked(sep24.initiateWithdraw).mockResolvedValue(MOCK_WITHDRAW_RESPONSE);
     vi.mocked(sep24.getWithdrawTransactionRecord).mockResolvedValue(MOCK_TRANSACTION_RECORD);
     vi.mocked(sep24.getSep24Transaction)
-      .mockResolvedValueOnce(MOCK_TRANSACTION_RECORD)
+      .mockResolvedValueOnce(MOCK_PENDING_TX)
       .mockResolvedValueOnce(MOCK_COMPLETED_TRANSACTION);
 
     // Setup SEP-1 mocks
@@ -267,8 +281,7 @@ describe('Intent Flow End-to-End', () => {
     vi.mocked(horizon.signAndSubmitPayment).mockResolvedValue({
       hash: 'test-stellar-tx-hash-' + Date.now(),
       ledger: 12345,
-      resultCode: 'tx_success',
-    });
+    } as Awaited<ReturnType<typeof horizon.signAndSubmitPayment>>);
   });
 
   afterEach(() => {
@@ -364,15 +377,15 @@ describe('Intent Flow End-to-End', () => {
     vi.mocked(sep24.getSep24Transaction).mockClear();
     vi.mocked(sep24.getSep24Transaction)
       .mockResolvedValueOnce({
-        ...MOCK_TRANSACTION_RECORD,
+        ...MOCK_PENDING_TX,
         status: 'pending_user_transfer_start',
       })
       .mockResolvedValueOnce({
-        ...MOCK_TRANSACTION_RECORD,
+        ...MOCK_PENDING_TX,
         status: 'pending_external',
       })
       .mockResolvedValueOnce({
-        ...MOCK_TRANSACTION_RECORD,
+        ...MOCK_PENDING_TX,
         status: 'pending_anchor',
       })
       .mockResolvedValueOnce(MOCK_COMPLETED_TRANSACTION);

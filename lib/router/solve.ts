@@ -26,11 +26,33 @@ import type {
  * large financial amounts.
  */
 function compareDecimals(a: string, b: string): number {
-  const SCALE = 10_000_000n;
+  // Convert a decimal string — including scientific notation like "1.5e3" — to a
+  // fixed-point bigint scaled to 7 decimal places, avoiding float precision loss.
   const toBigInt = (s: string): bigint => {
-    const [int = '0', frac = ''] = s.split('.');
-    const fracPadded = frac.slice(0, 7).padEnd(7, '0');
-    return BigInt(int) * SCALE + BigInt(fracPadded);
+    let str = s.trim();
+    let sign = 1n;
+    if (str.startsWith('-')) {
+      sign = -1n;
+      str = str.slice(1);
+    } else if (str.startsWith('+')) {
+      str = str.slice(1);
+    }
+
+    let exp = 0;
+    const eIdx = str.search(/[eE]/);
+    if (eIdx !== -1) {
+      exp = parseInt(str.slice(eIdx + 1), 10) || 0;
+      str = str.slice(0, eIdx);
+    }
+
+    const [intPart = '0', fracPart = ''] = str.split('.');
+    const digits = `${intPart}${fracPart}`.replace(/\D/g, '') || '0';
+    // Digits to the right of the decimal point after applying the exponent.
+    const pointFromRight = fracPart.length - exp;
+    const shift = 7 - pointFromRight; // scale to 7 decimal places
+    const magnitude =
+      shift >= 0 ? BigInt(digits) * 10n ** BigInt(shift) : BigInt(digits) / 10n ** BigInt(-shift);
+    return sign * magnitude;
   };
   const bigA = toBigInt(a);
   const bigB = toBigInt(b);

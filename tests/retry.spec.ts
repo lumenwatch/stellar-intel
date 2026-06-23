@@ -40,6 +40,9 @@ describe('withRetry', () => {
   it('fails after exhausting attempts for a permanent NetworkError', async () => {
     const fn = vi.fn().mockRejectedValue(new NetworkError('Fail'));
     const promise = withRetry(fn, { attempts: 3, base: 100 });
+    // Attach a handler now so the eventual rejection isn't flagged as unhandled
+    // while we advance fake timers below.
+    promise.catch(() => {});
 
     await vi.advanceTimersByTimeAsync(100);
     await vi.advanceTimersByTimeAsync(200);
@@ -67,6 +70,9 @@ describe('withRetry', () => {
   it('honors exponential backoff capped by the cap value', async () => {
     const fn = vi.fn().mockRejectedValue(new NetworkError('Fail'));
     const promise = withRetry(fn, { attempts: 5, base: 100, cap: 300 });
+    // Attach a handler now so the eventual rejection isn't flagged as unhandled
+    // while we advance fake timers below.
+    promise.catch(() => {});
 
     // Attempt 1: fails
     // Delay 1: min(300, 100 * 2^0) = 100ms

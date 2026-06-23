@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Keypair, Networks, TransactionBuilder, Account } from '@stellar/stellar-sdk';
+import { Keypair, Networks, TransactionBuilder, Account, Transaction } from '@stellar/stellar-sdk';
 import { buildWithdrawPayment, signAndSubmitPayment, horizonServer } from '@/lib/stellar/horizon';
 
 vi.mock('@stellar/freighter-api', () => ({
@@ -33,8 +33,11 @@ describe('Intent end-to-end round trip', () => {
 
     const freighter = await import('@stellar/freighter-api');
     vi.mocked(freighter.signTransaction).mockImplementation(
-      async (transactionXdr: string, opts: { networkPassphrase: string }) => {
-        const tx = TransactionBuilder.fromXDR(transactionXdr, opts.networkPassphrase);
+      async (transactionXdr: string, opts?: { networkPassphrase?: string; address?: string }) => {
+        const tx = TransactionBuilder.fromXDR(
+          transactionXdr,
+          opts?.networkPassphrase ?? Networks.PUBLIC
+        );
         tx.sign(sourceKeypair);
         return {
           signedTxXdr: tx.toXDR(),
@@ -46,15 +49,15 @@ describe('Intent end-to-end round trip', () => {
     const serverVerify = vi
       .spyOn(horizonServer, 'submitTransaction')
       .mockImplementation(async (signedTx: any) => {
-        const parsed = TransactionBuilder.fromXDR(signedTx.toXDR(), Networks.PUBLIC);
+        const parsed = TransactionBuilder.fromXDR(signedTx.toXDR(), Networks.PUBLIC) as Transaction;
         const signature = (parsed.signatures[0] as any).signature();
         expect(signature).toBeDefined();
         expect(
           Keypair.fromPublicKey(sourceKeypair.publicKey()).verify(parsed.hash(), signature)
         ).toBe(true);
         expect(parsed.operations).toHaveLength(1);
-        expect(parsed.operations[0].type).toBe('payment');
-        expect(parsed.memo.value).toBe(INTENT_FIXTURE.memo);
+        expect(parsed.operations[0]!.type).toBe('payment');
+        expect(parsed.memo.value?.toString()).toBe(INTENT_FIXTURE.memo);
 
         return {
           successful: true,
@@ -64,8 +67,8 @@ describe('Intent end-to-end round trip', () => {
       });
 
     const tx = await buildWithdrawPayment(INTENT_FIXTURE);
-    expect(tx.operations[0].type).toBe('payment');
-    expect(tx.memo.value).toBe(INTENT_FIXTURE.memo);
+    expect(tx.operations[0]!.type).toBe('payment');
+    expect(tx.memo.value?.toString()).toBe(INTENT_FIXTURE.memo);
 
     const result = await signAndSubmitPayment(tx);
     expect(result.successful).toBe(true);

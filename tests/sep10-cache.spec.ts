@@ -24,6 +24,9 @@ const mockResolvedAnchor = (domain: string) => ({
   domain: 'anchor.domain',
   ANCHOR_QUOTE_SERVER: null,
   NETWORK_PASSPHRASE: null,
+  ORG_URL: null,
+  ORG_SUPPORT_EMAIL: null,
+  ORG_SUPPORT_URL: null,
   CURRENCIES: [],
 });
 

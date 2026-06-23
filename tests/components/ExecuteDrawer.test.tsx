@@ -113,14 +113,13 @@ const RESOLVED_ANCHOR = {
   domain: 'cowrie.exchange',
   ANCHOR_QUOTE_SERVER: null,
   NETWORK_PASSPHRASE: null,
+  ORG_URL: null,
+  ORG_SUPPORT_EMAIL: null,
+  ORG_SUPPORT_URL: null,
   CURRENCIES: [
     { code: 'USDC', issuer: 'GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN' },
   ],
   capabilities: { sep10: true, sep24: true, sep38: false, sep12: false },
-  domain: 'anchor.domain',
-  ANCHOR_QUOTE_SERVER: null,
-  NETWORK_PASSPHRASE: null,
-  CURRENCIES: [],
 };
 
 const PUBLIC_KEY = 'GABCDEFGHIJKLMNOPQRSTUVWXYZ012345678901234567890123456789';
@@ -214,7 +213,7 @@ describe('ExecuteDrawer', () => {
 
     await waitFor(() => expect(mockInitiateWithdraw).toHaveBeenCalled());
 
-    expect(mockAuthenticate).toHaveBeenCalledWith(RESOLVED_ANCHOR, PUBLIC_KEY, expect.anything());
+    expect(mockAuthenticate).toHaveBeenCalledWith(RESOLVED_ANCHOR, PUBLIC_KEY);
 
     await waitFor(() => expect(screen.getByTestId('kyc-iframe-mock')).toBeInTheDocument());
 

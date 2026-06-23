@@ -69,7 +69,7 @@ describe('reportError call-site pattern', () => {
 
     expect(mockReporter.reportError).toHaveBeenCalledOnce();
     const [capturedError, capturedContext] = (mockReporter.reportError as ReturnType<typeof vi.fn>)
-      .mock.calls[0];
+      .mock.calls[0]!;
     expect(capturedError.name).toBe('SepError');
     expect(capturedError.httpStatus).toBe(500);
     expect(capturedContext).toMatchObject({ anchorDomain: 'test.anchor.com' });
