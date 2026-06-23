@@ -58,8 +58,8 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@typescript-eslint/eslint-plugin": "^8.57.0",
-    "@typescript-eslint/parser": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.0",
+    "@typescript-eslint/parser": "^8.62.0",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.9",
     "better-sqlite3": "^12.10.0",
@@ -75,6 +75,7 @@
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^6",
+    "typescript-eslint": "^8.62.0",
     "vitest": "^4.1.4"
   }
 }
