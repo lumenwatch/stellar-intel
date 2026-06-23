@@ -498,7 +498,14 @@ export function computeRateComparison(
     return { corridorId, rates: [], pending: [], bestRateId: '' };
   }
 
-  const best = rates.reduce((a, b) => ((b.totalReceived ?? 0) > (a.totalReceived ?? 0) ? b : a));
+  const best = rates.reduce((a, b) => {
+    const at = a.totalReceived ?? 0;
+    const bt = b.totalReceived ?? 0;
+    if (bt > at) return b;
+    if (bt < at) return a;
+    // Break ties deterministically so input order never changes the winner.
+    return b.anchorId < a.anchorId ? b : a;
+  });
 
   return { corridorId, rates, pending: [], bestRateId: best.anchorId };
 }
