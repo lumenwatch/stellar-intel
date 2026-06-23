@@ -62,9 +62,7 @@ jobs:
             --url=http://localhost:3000/offramp \
             --url=http://localhost:3000/anchors \
             --numberOfRuns=1 \
-            --settings.chromeFlags="--no-sandbox --headless=new --disable-gpu --disable-dev-shm-usage" \
-            --output=jsonExpanded \
-            --outputPath=./lhci-results
+            --settings.chromeFlags="--no-sandbox --headless=new --disable-gpu --disable-dev-shm-usage"
 
           kill $SERVER_PID || true
         env:
@@ -77,8 +75,11 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const resultsDir = './lhci-results';
-            const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('.json') && !f.includes('manifest'));
+            // lhci collect writes LHRs to .lighthouseci/lhr-*.json by default.
+            const resultsDir = '.lighthouseci';
+            const files = fs.existsSync(resultsDir)
+              ? fs.readdirSync(resultsDir).filter((f) => f.startsWith('lhr') && f.endsWith('.json'))
+              : [];
 
             if (!files.length) {
               console.log('No Lighthouse result files found.');
@@ -95,7 +96,14 @@ jobs:
             for (const file of files) {
               const report = JSON.parse(fs.readFileSync(path.join(resultsDir, file), 'utf8'));
               const cats = report.categories;
-              const url = new URL(report.finalUrl).pathname || '/';
+              const reportUrl =
+                report.finalDisplayedUrl || report.finalUrl || report.requestedUrl || '/';
+              let url = '/';
+              try {
+                url = new URL(reportUrl).pathname || '/';
+              } catch {
+                url = reportUrl;
+              }
               rows += `| \`${url}\` | ${formatScore(cats.performance?.score)} | ${formatScore(cats.accessibility?.score)} | ${formatScore(cats['best-practices']?.score)} | ${formatScore(cats.seo?.score)} |\n`;
             }
 
