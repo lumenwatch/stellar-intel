@@ -7,6 +7,8 @@ import { ThemeProvider } from '@/contexts/theme';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { OfflineBar } from '@/components/layout/OfflineBar';
 import { WalletProvider } from '@/contexts/WalletContext';
+import { ToastProvider } from '@/contexts/ToastContext';
+import { ToastPortal } from '@/components/ui/Toast';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -47,11 +49,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} min-h-screen bg-background`}>
         <ThemeProvider>
           <WalletProvider>
-            <OfflineBar />
-            <Navbar />
-            <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
-            <Footer />
-            <BottomNav />
+            <ToastProvider>
+              <OfflineBar />
+              <Navbar />
+              <main className="mx-auto max-w-7xl px-4 py-8">{children}</main>
+              <Footer />
+              <BottomNav />
+              <ToastPortal />
+            </ToastProvider>
           </WalletProvider>
         </ThemeProvider>
       </body>
