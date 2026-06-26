@@ -79,8 +79,8 @@ export interface AnchorCapabilities {
   sep24: boolean;
   sep38: boolean;
   sep12: boolean;
-  sep6: boolean;
-  sep31: boolean;
+  sep6?: boolean;
+  sep31?: boolean;
 }
 
 /** Relevant fields from a stellar.toml file resolved via SEP-1. */
@@ -102,7 +102,7 @@ export interface Sep1TomlData {
   CURRENCIES: Array<{ code: string; issuer?: string }>;
   capabilities: AnchorCapabilities;
   /** Normalized SEP capability flags for easy consumption by callers. */
-  seps: { sep6: boolean; sep24: boolean; sep38: boolean; sep31: boolean };
+  seps?: { sep6: boolean; sep24: boolean; sep38: boolean; sep31: boolean };
 }
 
 /** A normalized stellar.toml response for an anchor resolved via SEP-1. */

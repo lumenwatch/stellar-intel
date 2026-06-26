@@ -21,10 +21,10 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps.sep6).toBe(true);
-      expect(result.data.seps.sep24).toBe(true);
-      expect(result.data.seps.sep38).toBe(false);
-      expect(result.data.seps.sep31).toBe(false);
+      expect(result.data.seps!.sep6).toBe(true);
+      expect(result.data.seps!.sep24).toBe(true);
+      expect(result.data.seps!.sep38).toBe(false);
+      expect(result.data.seps!.sep31).toBe(false);
       expect(result.data.capabilities.sep6).toBe(true);
     }
   });
@@ -41,8 +41,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps.sep6).toBe(false);
-      expect(result.data.seps.sep24).toBe(true);
+      expect(result.data.seps!.sep6).toBe(false);
+      expect(result.data.seps!.sep24).toBe(true);
     }
   });
 
@@ -58,8 +58,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps.sep6).toBe(true);
-      expect(result.data.seps.sep24).toBe(false);
+      expect(result.data.seps!.sep6).toBe(true);
+      expect(result.data.seps!.sep24).toBe(false);
     }
   });
 
@@ -76,8 +76,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps.sep24).toBe(true);
-      expect(result.data.seps.sep31).toBe(true);
+      expect(result.data.seps!.sep24).toBe(true);
+      expect(result.data.seps!.sep31).toBe(true);
       expect(result.data.capabilities.sep31).toBe(true);
     }
   });
@@ -111,8 +111,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps.sep6).toBe(true);
-      expect(result.data.seps.sep31).toBe(true);
+      expect(result.data.seps!.sep6).toBe(true);
+      expect(result.data.seps!.sep31).toBe(true);
     }
   });
 });

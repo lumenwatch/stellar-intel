@@ -24,20 +24,20 @@ describe('resolveKycFields', () => {
 
     const byKey = Object.fromEntries(result.map((f) => [f.key, f]));
 
-    expect(byKey['first_name'].type).toBe('string');
-    expect(byKey['last_name'].type).toBe('string');
-    expect(byKey['photo_id_front'].type).toBe('binary');
-    expect(byKey['birth_date'].type).toBe('date');
+    expect(byKey['first_name']!.type).toBe('string');
+    expect(byKey['last_name']!.type).toBe('string');
+    expect(byKey['photo_id_front']!.type).toBe('binary');
+    expect(byKey['birth_date']!.type).toBe('date');
   });
 
   it('marks optional field as not required', () => {
     const result = resolveKycFields(withdrawResponse, customerResponse);
     const byKey = Object.fromEntries(result.map((f) => [f.key, f]));
 
-    expect(byKey['birth_date'].required).toBe(false);
-    expect(byKey['first_name'].required).toBe(true);
-    expect(byKey['last_name'].required).toBe(true);
-    expect(byKey['photo_id_front'].required).toBe(true);
+    expect(byKey['birth_date']!.required).toBe(false);
+    expect(byKey['first_name']!.required).toBe(true);
+    expect(byKey['last_name']!.required).toBe(true);
+    expect(byKey['photo_id_front']!.required).toBe(true);
   });
 
   it('deduplicates when same field appears in both responses', () => {
