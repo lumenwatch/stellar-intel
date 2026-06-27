@@ -102,7 +102,7 @@ export interface Sep1TomlData {
   CURRENCIES: Array<{ code: string; issuer?: string }>;
   capabilities: AnchorCapabilities;
   /** Normalized SEP capability flags for easy consumption by callers. */
-  seps?: { sep6: boolean; sep24: boolean; sep38: boolean; sep31: boolean };
+  seps?: Array<'sep6' | 'sep10' | 'sep24' | 'sep31' | 'sep38'>;
 }
 
 /** A normalized stellar.toml response for an anchor resolved via SEP-1. */

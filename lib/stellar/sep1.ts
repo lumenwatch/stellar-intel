@@ -1,12 +1,7 @@
 import { StellarToml } from '@stellar/stellar-sdk';
 import type { ResolvedAnchor, Sep1TomlData } from '@/types';
 import { ANCHORS } from './anchors';
-import {
-  getCachedToml,
-  setCachedToml,
-  invalidateCachedToml,
-  clearTomlCache,
-} from './toml-cache';
+import { getCachedToml, setCachedToml, invalidateCachedToml, clearTomlCache } from './toml-cache';
 
 // ─── Result type ──────────────────────────────────────────────────────────────
 
@@ -94,12 +89,12 @@ function toSep1TomlData(domain: string, raw: Record<string, unknown>): Sep1TomlD
       sep6: Boolean(sep6TransferServer),
       sep31: Boolean(directPaymentServer),
     },
-    seps: {
-      sep6: Boolean(sep6TransferServer),
-      sep24: Boolean(transferServer),
-      sep38: Boolean(quoteServer),
-      sep31: Boolean(directPaymentServer),
-    },
+    seps: [
+      ...(sep6TransferServer ? (['sep6'] as const) : []),
+      ...(transferServer ? (['sep24'] as const) : []),
+      ...(quoteServer ? (['sep38'] as const) : []),
+      ...(directPaymentServer ? (['sep31'] as const) : []),
+    ],
   };
 }
 

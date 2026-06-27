@@ -21,10 +21,10 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps!.sep6).toBe(true);
-      expect(result.data.seps!.sep24).toBe(true);
-      expect(result.data.seps!.sep38).toBe(false);
-      expect(result.data.seps!.sep31).toBe(false);
+      expect(result.data.seps).toContain('sep6');
+      expect(result.data.seps).toContain('sep24');
+      expect(result.data.seps).not.toContain('sep38');
+      expect(result.data.seps).not.toContain('sep31');
       expect(result.data.capabilities.sep6).toBe(true);
     }
   });
@@ -41,8 +41,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps!.sep6).toBe(false);
-      expect(result.data.seps!.sep24).toBe(true);
+      expect(result.data.seps).not.toContain('sep6');
+      expect(result.data.seps).toContain('sep24');
     }
   });
 
@@ -58,8 +58,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps!.sep6).toBe(true);
-      expect(result.data.seps!.sep24).toBe(false);
+      expect(result.data.seps).toContain('sep6');
+      expect(result.data.seps).not.toContain('sep24');
     }
   });
 
@@ -76,8 +76,8 @@ describe('SEP-1 seps capability flags', () => {
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps!.sep24).toBe(true);
-      expect(result.data.seps!.sep31).toBe(true);
+      expect(result.data.seps).toContain('sep24');
+      expect(result.data.seps).toContain('sep31');
       expect(result.data.capabilities.sep31).toBe(true);
     }
   });
@@ -104,15 +104,15 @@ describe('SEP-1 seps capability flags', () => {
         sep6: true,
         sep31: true,
       },
-      seps: { sep6: true, sep24: false, sep38: false, sep31: true },
+      seps: ['sep6', 'sep31'],
     });
 
     const result = await resolveToml('seeded.example.com');
 
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.data.seps!.sep6).toBe(true);
-      expect(result.data.seps!.sep31).toBe(true);
+      expect(result.data.seps).toContain('sep6');
+      expect(result.data.seps).toContain('sep31');
     }
   });
 });
