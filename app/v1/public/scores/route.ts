@@ -44,7 +44,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     }
 
     const payload = buildScorePayload();
-    const etag = `"${Buffer.from(JSON.stringify(payload)).length}-${Date.now()}"`;
+    const payloadHash = Buffer.from(JSON.stringify(payload)).toString('base64');
+    const etag = `"${payloadHash}"`;
 
     const ifNoneMatch = request.headers.get('if-none-match');
     if (ifNoneMatch && ifNoneMatch === lastEtag) {
