@@ -2,9 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { ANCHORS, CORRIDORS } from '@/constants/anchors';
 import type { Anchor, Corridor } from '@/types';
 
-const FLAGGED_OFF_CORRIDORS = {
-  'usdc-eur': 'No transfer-capable EUR off-ramp anchor is registered yet.',
-} as const satisfies Record<string, string>;
+// usdc-eur was flagged off until mykobo.co (#639) started serving it.
+const FLAGGED_OFF_CORRIDORS = {} as const satisfies Record<string, string>;
 
 function anchorIdsByCorridor(anchors: readonly Anchor[]): Map<string, string[]> {
   const coverage = new Map<string, string[]>();
