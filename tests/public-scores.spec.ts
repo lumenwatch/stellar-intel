@@ -90,11 +90,12 @@ describe('ETag cache deduplication', () => {
     
     const firstResponse = await GET(request);
     const etag = firstResponse.headers.get('ETag');
-    
+    expect(etag).not.toBeNull();
+
     const cachedRequest = new NextRequest('http://localhost/v1/public/scores', {
-      headers: { 
+      headers: {
         'x-forwarded-for': '1.2.3.5',
-        'if-none-match': etag,
+        'if-none-match': etag as string,
       },
     });
     
