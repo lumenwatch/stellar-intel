@@ -41,12 +41,15 @@ export default function HomePage() {
             aria-label="Off-ramp — route a USDC off-ramp to the cheapest anchor, by country and corridor"
             className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-950"
           >
-            <Card className="group h-full min-h-[44px] cursor-pointer transition-shadow hover:shadow-md">
-              <div className="mb-4 inline-flex rounded-lg p-2.5 bg-green-50 dark:bg-green-950/30">
-                <ArrowDownRight className="h-5 w-5 text-green-600" aria-hidden="true" />
+            <Card className="group h-full min-h-[44px] cursor-pointer transition-shadow hover:shadow-md dark:hover:shadow-gray-900/50">
+              <div className="mb-4 inline-flex rounded-lg p-2.5 bg-green-50 dark:bg-green-900/40">
+                <ArrowDownRight
+                  className="h-5 w-5 text-green-600 dark:text-green-400"
+                  aria-hidden="true"
+                />
               </div>
               <h3 className="mb-2 font-semibold text-gray-900 dark:text-white">Off-ramp</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-300">
                 Route a USDC off-ramp to the cheapest anchor, by country and corridor.
               </p>
             </Card>
@@ -55,7 +58,7 @@ export default function HomePage() {
       </section>
 
       {/* Explainer */}
-      <section className="rounded-xl border border-gray-200 p-4 dark:border-gray-700 sm:p-6">
+      <section className="rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800/50 sm:p-6">
         <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">How it works</h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {[
@@ -76,12 +79,12 @@ export default function HomePage() {
             },
           ].map(({ step, title, body }) => (
             <div key={step} className="flex gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white dark:bg-blue-500">
                 {step}
               </div>
               <div>
                 <div className="font-medium text-gray-900 dark:text-white">{title}</div>
-                <div className="mt-1 text-sm text-gray-600 dark:text-gray-400">{body}</div>
+                <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">{body}</div>
               </div>
             </div>
           ))}
