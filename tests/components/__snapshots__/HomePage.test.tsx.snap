@@ -9,7 +9,7 @@ exports[`HomePage > matches snapshot 1`] = `
     class="py-8 text-center sm:py-12"
   >
     <div
-      class="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+      class="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-sm font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
     >
       <svg
         aria-hidden="true"
@@ -39,13 +39,13 @@ exports[`HomePage > matches snapshot 1`] = `
         class="hidden sm:block"
       />
       <span
-        class="text-blue-600"
+        class="text-blue-600 dark:text-blue-400"
       >
         stablecoin off-ramps.
       </span>
     </h1>
     <p
-      class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-400"
+      class="mx-auto max-w-2xl text-lg text-gray-600 dark:text-gray-300"
     >
       Compare live SEP-38 quotes across every Stellar anchor, then settle a non-custodial USDC off-ramp to Nigeria, Kenya, Ghana, Mexico, and more — in a single signed intent.
     </p>
@@ -66,14 +66,14 @@ exports[`HomePage > matches snapshot 1`] = `
   </section>
   <section
     aria-label="Key statistics"
-    class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50 sm:grid-cols-3"
+    class="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800 sm:grid-cols-3"
   >
     <div
       class="flex items-center gap-3"
     >
       <svg
         aria-hidden="true"
-        class="lucide lucide-landmark h-5 w-5 shrink-0 text-blue-600"
+        class="lucide lucide-landmark h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400"
         fill="none"
         height="24"
         stroke="currentColor"
@@ -107,10 +107,26 @@ exports[`HomePage > matches snapshot 1`] = `
         <div
           class="text-xl font-bold text-gray-900 dark:text-white"
         >
-          3
+          <div>
+            <span
+              class="relative inline-grid tabular-nums"
+            >
+              <span
+                aria-hidden="true"
+                class="invisible"
+              >
+                3
+              </span>
+              <span
+                class="absolute inset-0"
+              >
+                0
+              </span>
+            </span>
+          </div>
         </div>
         <div
-          class="text-xs text-gray-600 dark:text-gray-400"
+          class="text-xs text-gray-600 dark:text-gray-300"
         >
           Anchors tracked
         </div>
@@ -121,7 +137,7 @@ exports[`HomePage > matches snapshot 1`] = `
     >
       <svg
         aria-hidden="true"
-        class="lucide lucide-route h-5 w-5 shrink-0 text-blue-600"
+        class="lucide lucide-route h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400"
         fill="none"
         height="24"
         stroke="currentColor"
@@ -150,10 +166,26 @@ exports[`HomePage > matches snapshot 1`] = `
         <div
           class="text-xl font-bold text-gray-900 dark:text-white"
         >
-          2
+          <div>
+            <span
+              class="relative inline-grid tabular-nums"
+            >
+              <span
+                aria-hidden="true"
+                class="invisible"
+              >
+                2
+              </span>
+              <span
+                class="absolute inset-0"
+              >
+                0
+              </span>
+            </span>
+          </div>
         </div>
         <div
-          class="text-xs text-gray-600 dark:text-gray-400"
+          class="text-xs text-gray-600 dark:text-gray-300"
         >
           Corridors live
         </div>
@@ -164,7 +196,7 @@ exports[`HomePage > matches snapshot 1`] = `
     >
       <svg
         aria-hidden="true"
-        class="lucide lucide-globe h-5 w-5 shrink-0 text-blue-600"
+        class="lucide lucide-globe h-5 w-5 shrink-0 text-blue-600 dark:text-blue-400"
         fill="none"
         height="24"
         stroke="currentColor"
@@ -191,10 +223,26 @@ exports[`HomePage > matches snapshot 1`] = `
         <div
           class="text-xl font-bold text-gray-900 dark:text-white"
         >
-          2
+          <div>
+            <span
+              class="relative inline-grid tabular-nums"
+            >
+              <span
+                aria-hidden="true"
+                class="invisible"
+              >
+                2
+              </span>
+              <span
+                class="absolute inset-0"
+              >
+                0
+              </span>
+            </span>
+          </div>
         </div>
         <div
-          class="text-xs text-gray-600 dark:text-gray-400"
+          class="text-xs text-gray-600 dark:text-gray-300"
         >
           Countries reachable
         </div>
@@ -455,14 +503,14 @@ exports[`HomePage > matches snapshot 1`] = `
         href="/offramp"
       >
         <div
-          class="rounded-xl border bg-white p-4 shadow-sm transition-colors dark:bg-gray-900 border-gray-200 dark:border-gray-700 group h-full min-h-[44px] cursor-pointer transition-shadow hover:shadow-md"
+          class="rounded-xl border bg-white p-4 shadow-sm transition-colors dark:bg-gray-900 border-gray-200 dark:border-gray-700 group h-full min-h-[44px] cursor-pointer transition-shadow hover:shadow-md dark:hover:shadow-gray-900/50"
         >
           <div
-            class="mb-4 inline-flex rounded-lg p-2.5 bg-green-50 dark:bg-green-950/30"
+            class="mb-4 inline-flex rounded-lg p-2.5 bg-green-50 dark:bg-green-900/40"
           >
             <svg
               aria-hidden="true"
-              class="lucide lucide-arrow-down-right h-5 w-5 text-green-600"
+              class="lucide lucide-arrow-down-right h-5 w-5 text-green-600 dark:text-green-400"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -487,7 +535,7 @@ exports[`HomePage > matches snapshot 1`] = `
             Off-ramp
           </h3>
           <p
-            class="text-sm text-gray-600 dark:text-gray-400"
+            class="text-sm text-gray-600 dark:text-gray-300"
           >
             Route a USDC off-ramp to the cheapest anchor, by country and corridor.
           </p>
@@ -496,7 +544,7 @@ exports[`HomePage > matches snapshot 1`] = `
     </div>
   </section>
   <section
-    class="rounded-xl border border-gray-200 p-4 dark:border-gray-700 sm:p-6"
+    class="rounded-xl border border-gray-200 p-4 dark:border-gray-700 dark:bg-gray-800/50 sm:p-6"
   >
     <h2
       class="mb-4 text-lg font-semibold text-gray-900 dark:text-white"
@@ -510,7 +558,7 @@ exports[`HomePage > matches snapshot 1`] = `
         class="flex gap-4"
       >
         <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white dark:bg-blue-500"
         >
           01
         </div>
@@ -521,7 +569,7 @@ exports[`HomePage > matches snapshot 1`] = `
             Pick your corridor
           </div>
           <div
-            class="mt-1 text-sm text-gray-600 dark:text-gray-400"
+            class="mt-1 text-sm text-gray-600 dark:text-gray-300"
           >
             Choose a destination country and the USDC amount to withdraw.
           </div>
@@ -531,7 +579,7 @@ exports[`HomePage > matches snapshot 1`] = `
         class="flex gap-4"
       >
         <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white dark:bg-blue-500"
         >
           02
         </div>
@@ -542,7 +590,7 @@ exports[`HomePage > matches snapshot 1`] = `
             Compare live quotes
           </div>
           <div
-            class="mt-1 text-sm text-gray-600 dark:text-gray-400"
+            class="mt-1 text-sm text-gray-600 dark:text-gray-300"
           >
             We pull live SEP-38 quotes from every integrated anchor.
           </div>
@@ -552,7 +600,7 @@ exports[`HomePage > matches snapshot 1`] = `
         class="flex gap-4"
       >
         <div
-          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white"
+          class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white dark:bg-blue-500"
         >
           03
         </div>
@@ -563,7 +611,7 @@ exports[`HomePage > matches snapshot 1`] = `
             Execute in one click
           </div>
           <div
-            class="mt-1 text-sm text-gray-600 dark:text-gray-400"
+            class="mt-1 text-sm text-gray-600 dark:text-gray-300"
           >
             Sign once and settle directly on Stellar with Freighter — non-custodial.
           </div>
