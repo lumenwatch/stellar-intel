@@ -1,6 +1,7 @@
 import { SepError, parseSepErrorBody } from './errors';
 import { getTransferServer } from './sep1';
 import { getAnchorsByCorridorId, getCorridorById } from './anchors';
+import { fetchWithTimeout } from './http';
 import { computeTotalReceived } from '@/lib/utils';
 import { normalizeStatus } from './sep24-status-map';
 import type {
@@ -164,16 +165,6 @@ export function resolveAssetParams(
 
 export type Sep24FeeResult = { ok: true; fee: number } | { ok: false; reason: 'unsupported' };
 
-async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), ms);
-  try {
-    return await fetch(url, { signal: controller.signal });
-  } finally {
-    clearTimeout(id);
-  }
-}
-
 /**
  * Fetches the anchor's fee quote directly from a known transfer server.
  * Uses a 5-second timeout with one automatic retry on network/timeout failure.
@@ -314,19 +305,14 @@ export async function fetchAnchorFee(
   url.searchParams.set('amount', params.amount);
   url.searchParams.set('type', params.type);
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
-
   let res: Response;
   try {
-    res = await fetch(url.toString(), { signal: controller.signal });
+    res = await fetchWithTimeout(url.toString(), 10_000);
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error(`Request to ${params.anchorDomain} timed out after 10 seconds`);
     }
     throw err;
-  } finally {
-    clearTimeout(timeout);
   }
 
   if (!res.ok) {

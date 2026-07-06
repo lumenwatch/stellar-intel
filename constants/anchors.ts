@@ -14,7 +14,7 @@ export const USDC_ASSET: StellarAsset = {
 // but the rate path will ignore them unless this deployment flag is explicitly on.
 const enabledFlagValues = new Set(['1', 'on', 'true']);
 
-export const ANCHOR_ASSET_FLAGS: Record<FeatureGatedAnchorAssetCode, boolean> = {
+const ANCHOR_ASSET_FLAGS: Record<FeatureGatedAnchorAssetCode, boolean> = {
   USDT: enabledFlagValues.has((process.env.NEXT_PUBLIC_USDT_ENABLED ?? '').toLowerCase()),
 };
 

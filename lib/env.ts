@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { STELLAR_PUBKEY_PATTERN } from './patterns';
 
 export const envSchema = z.object({
   NEXT_PUBLIC_STELLAR_NETWORK: z.enum(['mainnet', 'testnet', 'futurenet'], {
@@ -7,7 +8,7 @@ export const envSchema = z.object({
   NEXT_PUBLIC_HORIZON_URL: z.string().url({
     message: 'Must be a valid URL (e.g. https://horizon.stellar.org)',
   }),
-  NEXT_PUBLIC_USDC_ISSUER: z.string().regex(/^G[A-Z0-9]{55}$/, {
+  NEXT_PUBLIC_USDC_ISSUER: z.string().regex(STELLAR_PUBKEY_PATTERN, {
     message: 'Must be a valid Stellar public key (starts with G, 56 characters)',
   }),
   NEXT_PUBLIC_APP_NAME: z.string().min(1, { message: 'Cannot be empty' }),

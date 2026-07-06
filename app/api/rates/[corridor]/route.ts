@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withRequestLogger } from '@/lib/logger';
 import { isValidCorridorId } from '@/lib/stellar/anchors';
 import { fetchCorridorRates } from '@/lib/stellar/server-rates';
+import { AMOUNT_PATTERN } from '@/lib/patterns';
 
 // Live anchor calls must run per-request, never at build time.
 export const dynamic = 'force-dynamic';
-
-const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
 
 // ─── GET /api/rates/[corridor]?amount=100 ────────────────────────────────────
 //

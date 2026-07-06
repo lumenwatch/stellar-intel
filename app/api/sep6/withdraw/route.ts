@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRequestLogger } from '@/lib/logger';
+import { STELLAR_PUBKEY_PATTERN as ACCOUNT_PATTERN, AMOUNT_PATTERN } from '@/lib/patterns';
 
 export const dynamic = 'force-dynamic';
 
 const TRANSFER_SERVER_PATTERN = /^https:\/\//;
 const ASSET_CODE_PATTERN = /^[A-Z]{1,12}$/;
-const ACCOUNT_PATTERN = /^G[A-Z2-7]{55}$/;
-const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
 
 // ─── POST /api/sep6/withdraw ──────────────────────────────────────────────────
 //

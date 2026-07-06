@@ -16,7 +16,7 @@ you need to get started.
 ## Development Setup
 
 ```bash
-git clone https://github.com/your-org/stellar-intel.git
+git clone https://github.com/Ezedike-Evan/stellar-intel.git
 cd stellar-intel
 npm install
 cp .env.example .env.local
@@ -84,12 +84,12 @@ Types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`.
 
 ## Adding a New Anchor
 
-Anchors are defined in `constants/index.ts`. To add a new anchor:
+Anchors are defined in `constants/anchors.ts` (re-exported via `constants/index.ts`). To add a new anchor:
 
 1. Add an entry to `KNOWN_ANCHORS` with the anchor's `id`, `name`, `domain`,
    `supportedCountries`, `supportedCurrencies`, and `depositMethods`.
 2. The anchor must have a publicly resolvable `stellar.toml` at `https://{domain}/.well-known/stellar.toml`.
-3. The `stellar.toml` must contain `TRANSFER_SERVER_SEP0024` for off-ramp/on-ramp support.
+3. The `stellar.toml` must expose a transfer server — `TRANSFER_SERVER_SEP0024` (SEP-24) or `TRANSFER_SERVER` (SEP-6). SEP-6-only anchors are supported; see [docs/ANCHOR_ONBOARDING.md](docs/ANCHOR_ONBOARDING.md).
 4. Verify the anchor's `/fee` endpoint returns live data before submitting the PR.
 
 ---

@@ -1,4 +1,5 @@
 import { parseSepErrorBody } from './errors';
+import { fetchWithTimeout } from './http';
 import type {
   Sep1TomlData,
   Sep38Asset,
@@ -127,19 +128,14 @@ export async function getSep38Info(quoteServer: string): Promise<Sep38Info> {
     return cached.data;
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   let res: Response;
   try {
-    res = await fetch(`${base}/info`, { signal: controller.signal });
+    res = await fetchWithTimeout(`${base}/info`, REQUEST_TIMEOUT_MS);
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error(`SEP-38 /info request to ${base} timed out after 10 seconds`);
     }
     throw err;
-  } finally {
-    clearTimeout(timeout);
   }
 
   if (!res.ok) {
@@ -223,19 +219,14 @@ export async function getSep38Prices(
     url.searchParams.set('country_code', params.country_code);
   }
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   let res: Response;
   try {
-    res = await fetch(url.toString(), { signal: controller.signal });
+    res = await fetchWithTimeout(url.toString(), REQUEST_TIMEOUT_MS);
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error(`SEP-38 /prices request to ${base} timed out after 10 seconds`);
     }
     throw err;
-  } finally {
-    clearTimeout(timeout);
   }
 
   if (!res.ok) {
@@ -471,24 +462,18 @@ export async function postSep38Quote(
   if (params.country_code) body['country_code'] = params.country_code;
   if (params.expire_after) body['expire_after'] = params.expire_after;
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   let res: Response;
   try {
-    res = await fetch(`${base}/quote`, {
+    res = await fetchWithTimeout(`${base}/quote`, REQUEST_TIMEOUT_MS, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${jwt}` },
       body: JSON.stringify(body),
-      signal: controller.signal,
     });
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error(`SEP-38 /quote request to ${base} timed out after 10 seconds`);
     }
     throw err;
-  } finally {
-    clearTimeout(timeout);
   }
 
   if (!res.ok) {
@@ -517,23 +502,17 @@ export async function deleteSep38Quote(
   if (!id) throw new Sep38ParseError('A quote id is required to cancel a quote');
   if (!jwt) throw new Sep38ParseError('A SEP-10 JWT is required to cancel a quote');
 
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
   let res: Response;
   try {
-    res = await fetch(`${base}/quote/${encodeURIComponent(id)}`, {
+    res = await fetchWithTimeout(`${base}/quote/${encodeURIComponent(id)}`, REQUEST_TIMEOUT_MS, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${jwt}` },
-      signal: controller.signal,
     });
   } catch (err) {
     if ((err as Error).name === 'AbortError') {
       throw new Error(`SEP-38 /quote cancellation to ${base} timed out after 10 seconds`);
     }
     throw err;
-  } finally {
-    clearTimeout(timeout);
   }
 
   // Idempotent: already-cancelled or expired quotes return 404/410 — treat as success.

@@ -2,6 +2,7 @@ import { StellarToml } from '@stellar/stellar-sdk';
 import type { ResolvedAnchor, Sep1TomlData } from '@/types';
 import { ANCHORS } from './anchors';
 import { getCachedToml, setCachedToml, invalidateCachedToml, clearTomlCache } from './toml-cache';
+import { sleep } from '@/lib/utils';
 
 // ─── Result type ──────────────────────────────────────────────────────────────
 
@@ -12,8 +13,6 @@ export type TomlResult = { ok: true; data: Sep1TomlData } | { ok: false; error: 
 const TOML_MAX_ATTEMPTS = 3;
 const TOML_RETRY_BASE_MS = 250; // exponential backoff base: 250ms, 500ms, …
 const TOML_RETRY_BUDGET_MS = 5000; // wall-clock budget; stop before exceeding it
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
