@@ -1,5 +1,6 @@
 import type { Country, StellarAsset } from '@/types';
-export { KNOWN_ANCHORS, ANCHORS, CORRIDORS, ANCHOR_HOME_DOMAINS } from './anchors';
+export { KNOWN_ANCHORS, ANCHORS, CORRIDORS, ANCHOR_HOME_DOMAINS, registryStats } from './anchors';
+export type { RegistryStats } from './anchors';
 
 import { env } from '@/lib/env';
 export const HORIZON_URL = env.NEXT_PUBLIC_HORIZON_URL;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import useSWR from 'swr';
 import { measureClient } from '@/lib/metrics';
-import type { AnchorRate, RateComparison } from '@/types';
+import type { AnchorRate, AnchorRateError, RateComparison } from '@/types';
 
 const RATES_REFRESH_INTERVAL_MS = 30_000;
 
@@ -49,9 +49,14 @@ export interface UseAnchorRatesResult {
   refreshInflight: boolean;
   pauseRefresh: () => void;
   resumeRefresh: () => void;
+  anchorErrors: AnchorRateError[];
 }
 
-export function useAnchorRates(corridorId: string, amount: string): UseAnchorRatesResult {
+export function useAnchorRates(
+  corridorId: string,
+  amount: string,
+  { revalidateOnFocus = true }: { revalidateOnFocus?: boolean } = {}
+): UseAnchorRatesResult {
   const [refreshInflight, setRefreshInflight] = useState(false);
   const isDocumentVisible = useDocumentVisible();
   const wasDocumentVisible = useRef(isDocumentVisible);
@@ -83,7 +88,7 @@ export function useAnchorRates(corridorId: string, amount: string): UseAnchorRat
     {
       refreshInterval: RATES_REFRESH_INTERVAL_MS,
       refreshWhenHidden: false,
-      revalidateOnFocus: true,
+      revalidateOnFocus,
       dedupingInterval: 5_000,
     }
   );
@@ -199,5 +204,6 @@ export function useAnchorRates(corridorId: string, amount: string): UseAnchorRat
     refreshInflight,
     pauseRefresh,
     resumeRefresh,
+    anchorErrors: data?.errors ?? [],
   };
 }

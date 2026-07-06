@@ -1,5 +1,6 @@
 import type { Anchor, Corridor, FeatureGatedAnchorAssetCode, StellarAsset } from '@/types';
 import { USDC_ISSUER } from '@/lib/config';
+import { flags } from '@/lib/flags';
 
 // ─── USDC asset ───────────────────────────────────────────────────────────────
 
@@ -25,6 +26,9 @@ export function isAnchorAssetEnabled(assetCode: string): boolean {
 
 // ─── Anchors ──────────────────────────────────────────────────────────────────
 
+// Bucketed Anchors (not integrated):
+// - fchain.io: SEP-6 /info only lists crypto assets (BCH, ETH, USDT, WICC, XRP, STM). No fiat settlement available. (Verified 2026-06-28)
+
 export const ANCHORS: Anchor[] = [
   {
     id: 'moneygram',
@@ -34,6 +38,7 @@ export const ANCHORS: Anchor[] = [
     corridors: ['usdc-ngn', 'usdc-kes', 'usdc-ghs', 'usdc-mxn', 'usdc-brl'],
     assetCode: 'USDC',
     assetIssuer: USDC_ISSUER,
+    seps: ['sep10', 'sep24'],
   },
   {
     // SEP-6 programmatic withdraw — rates are indicative, not firm quotes
@@ -96,6 +101,20 @@ export const ANCHORS: Anchor[] = [
     corridors: ['brl-brl'],
     assetCode: 'BRL',
     assetIssuer: 'GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP',
+    seps: ['sep6', 'sep24', 'sep31'],
+  },
+  // zeam.money: ZAR fiat corridor — SEP-24 withdraw/deposit enabled.
+  // Verified 2026-06-28. TOML: TRANSFER_SERVER_SEP0024 = https://anchor.zeam.money/sep24
+  // /info: deposit/withdraw for USDC enabled.
+  {
+    id: 'zeam',
+    name: 'Zeam Money',
+    homeDomain: 'zeam.money',
+    serviceDomain: 'anchor.zeam.money',
+    corridors: ['usdc-zar'],
+    assetCode: 'USDC',
+    assetIssuer: USDC_ISSUER,
+    seps: ['sep24', 'sep31'],
   },
 ];
 
@@ -171,4 +190,78 @@ export const CORRIDORS: Corridor[] = [
     countryCode: 'BR',
     countryName: 'Brazil',
   },
+  // ─── v1.1 target corridors ────────────────────────────────────────────────
+  // Scaffolded ahead of anchor onboarding (see .github/ISSUE_TEMPLATE/anchor-onboard.yml).
+  // Gated behind the `v11Corridors` flag AND anchor coverage — see V11_CORRIDOR_IDS
+  // and VISIBLE_CORRIDORS below. They remain in CORRIDORS so lookups and validation
+  // resolve, but stay out of selectors until an anchor serves them.
+  {
+    id: 'usdc-zar',
+    from: 'USDC',
+    to: 'ZAR',
+    countryCode: 'ZA',
+    countryName: 'South Africa',
+  },
+  // XOF is the West African CFA franc, shared across UEMOA states. We anchor the
+  // corridor's country metadata to Senegal as the primary onboarding market.
+  {
+    id: 'usdc-xof',
+    from: 'USDC',
+    to: 'XOF',
+    countryCode: 'SN',
+    countryName: 'Senegal',
+  },
 ];
+
+/**
+ * Corridor IDs gated behind the `v11Corridors` feature flag. These are defined
+ * in CORRIDORS but excluded from VISIBLE_CORRIDORS until the flag is enabled and
+ * at least one anchor serves them.
+ */
+export const V11_CORRIDOR_IDS: ReadonlySet<string> = new Set(['usdc-zar', 'usdc-xof']);
+
+/** Corridor IDs that at least one anchor in the registry currently serves. */
+const SERVED_CORRIDOR_IDS: ReadonlySet<string> = new Set(
+  ANCHORS.flatMap((anchor) => anchor.corridors)
+);
+
+/**
+ * Corridors safe to surface in selectors. Non-gated corridors always appear;
+ * v1.1 gated corridors appear only when the `v11Corridors` flag is on AND an
+ * anchor serves them — so a scaffolded corridor stays hidden until it's live.
+ */
+export const VISIBLE_CORRIDORS: Corridor[] = CORRIDORS.filter((c) => {
+  if (!V11_CORRIDOR_IDS.has(c.id)) return true;
+  return flags.v11Corridors && SERVED_CORRIDOR_IDS.has(c.id);
+});
+
+// ─── Registry stats ─────────────────────────────────────────────────────────────
+
+/** Headline registry counts for the landing stat bar. */
+export interface RegistryStats {
+  /** Number of integrated anchors. */
+  anchors: number;
+  /** Distinct corridors actually served by at least one anchor. */
+  corridors: number;
+  /** Distinct destination countries reachable through those corridors. */
+  countries: number;
+}
+
+/**
+ * Derive headline counts from the registry (#B074). Corridors and countries are
+ * counted from the corridors anchors actually serve — not the full corridor
+ * table — so the stat bar never advertises a route with no anchor behind it.
+ */
+export function registryStats(): RegistryStats {
+  const servedCorridorIds = new Set(ANCHORS.flatMap((anchor) => anchor.corridors));
+  const countryCodes = new Set(
+    CORRIDORS.filter((corridor) => servedCorridorIds.has(corridor.id)).map(
+      (corridor) => corridor.countryCode
+    )
+  );
+  return {
+    anchors: ANCHORS.length,
+    corridors: servedCorridorIds.size,
+    countries: countryCodes.size,
+  };
+}

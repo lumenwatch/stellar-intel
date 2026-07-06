@@ -7,7 +7,7 @@ export * from '@/constants/anchors';
 
 import { ANCHORS, CORRIDORS } from '@/constants/anchors';
 import anchorHealthData from '@/constants/anchor-health.json';
-import type { Anchor, Corridor, ResolvedAnchor } from '@/types';
+import type { Anchor, Corridor, ResolvedAnchor, Sep1TomlData } from '@/types';
 
 // ─── Anchor health (stale-anchor auto-disable, #495) ───────────────────────────
 
@@ -57,6 +57,63 @@ export function getDegradedAnchorIds(): string[] {
   return Object.keys(ANCHOR_HEALTH.anchors).filter((id) => ANCHOR_HEALTH.anchors[id]?.degraded);
 }
 
+// ─── Asset-issuer validation (#489) ─────────────────────────────────────────────
+
+/**
+ * Outcome of comparing an anchor's registered asset issuer against the issuer it
+ * advertises for the same asset code in its resolved stellar.toml.
+ *
+ * - `match`        — the toml lists `assetCode` under the canonical issuer.
+ * - `mismatch`     — the toml lists `assetCode` under a *different* issuer: a
+ *                    look-alike asset reusing a trusted code (e.g. "USDC").
+ * - `missing`      — the toml advertises no issuer for `assetCode` to compare.
+ */
+export type AnchorIssuerStatus = 'match' | 'mismatch' | 'missing';
+
+/** Result of {@link validateAnchorAssetIssuer}. */
+export interface AnchorIssuerValidation {
+  anchorId: string;
+  assetCode: string;
+  /** Canonical issuer the anchor is registered to settle (USDC_ISSUER for USDC anchors). */
+  expectedIssuer: string;
+  /** Issuer advertised for `assetCode` in the resolved toml CURRENCIES, or null if absent. */
+  advertisedIssuer: string | null;
+  status: AnchorIssuerStatus;
+}
+
+/**
+ * Validates that an anchor settles the canonical issuer for its registered asset
+ * rather than a look-alike that merely reuses the asset code. Compares the
+ * anchor's registered `assetIssuer` (e.g. USDC_ISSUER) against the issuer the
+ * anchor publishes for the same code in its stellar.toml `[[CURRENCIES]]`.
+ *
+ * Pure and synchronous so it can be reused by the app, the nightly validator, and
+ * tests. A `mismatch` is the security-relevant case — the anchor advertises a
+ * trusted code under an impostor issuer.
+ */
+export function validateAnchorAssetIssuer(
+  anchor: Pick<Anchor, 'id' | 'assetCode' | 'assetIssuer'>,
+  currencies: Sep1TomlData['CURRENCIES']
+): AnchorIssuerValidation {
+  const advertisedIssuer =
+    currencies.find(
+      (currency) => currency.code === anchor.assetCode && typeof currency.issuer === 'string'
+    )?.issuer ?? null;
+
+  let status: AnchorIssuerStatus;
+  if (advertisedIssuer === null) status = 'missing';
+  else if (advertisedIssuer === anchor.assetIssuer) status = 'match';
+  else status = 'mismatch';
+
+  return {
+    anchorId: anchor.id,
+    assetCode: anchor.assetCode,
+    expectedIssuer: anchor.assetIssuer,
+    advertisedIssuer,
+    status,
+  };
+}
+
 // ─── Lookup helpers ───────────────────────────────────────────────────────────
 
 /**
@@ -91,14 +148,35 @@ export async function getResolvedAnchorById(id: string): Promise<ResolvedAnchor>
   return { ...anchor, ...result.data };
 }
 
+// SEPs that indicate transfer capability (deposit/withdrawal/send)
+// SEP-6: programmatic transfer, SEP-24: interactive transfer,
+// SEP-31: cross-border payment
+const TRANSFER_SEPS: ReadonlyArray<NonNullable<Anchor['seps']>[number]> = [
+  'sep6',
+  'sep24',
+  'sep31',
+];
+
+/**
+ * Returns true if the anchor supports at least one transfer SEP
+ * (SEP-6, SEP-24, or SEP-31). Issuer-only anchors that lack all
+ * three are excluded from corridor selectors and the rate engine.
+ */
+export function transferCapable(anchor: Anchor): boolean {
+  return anchor.seps?.some((sep) => TRANSFER_SEPS.includes(sep)) ?? false;
+}
+
 /**
  * Returns all anchors that serve the given corridor.
  * Anchors auto-flagged `degraded` by the nightly validator are excluded so they
  * stay hidden from selectors (rate solicitation, off-ramp options).
+ * Excludes issuer-only anchors that lack transfer SEPs.
  * Returns an empty array if no anchors support the corridor.
  */
 export function getAnchorsByCorridorId(corridorId: string): Anchor[] {
-  return ANCHORS.filter((a) => a.corridors.includes(corridorId) && !isAnchorDegraded(a.id));
+  return ANCHORS.filter((a) => a.corridors.includes(corridorId) && !isAnchorDegraded(a.id)).filter(
+    transferCapable
+  );
 }
 
 /**
@@ -121,6 +199,18 @@ export async function discoverAnchorsForCorridor(corridorId: string): Promise<Re
       const sep1 = result.data;
       if (!sep1.TRANSFER_SERVER_SEP0024 || !sep1.WEB_AUTH_ENDPOINT) {
         throw new Error(`Anchor "${anchor.id}" does not support SEP-24 or SEP-10.`);
+      }
+      // Flag look-alike assets: an anchor that advertises our trusted code under a
+      // different issuer is settling an impostor asset. We surface it loudly rather
+      // than drop it — the registry's canonical issuer still governs downstream
+      // SEP-38 identifiers, so the warning is for operators/CI to act on.
+      const issuerCheck = validateAnchorAssetIssuer(anchor, sep1.CURRENCIES);
+      if (issuerCheck.status === 'mismatch') {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[anchors] ${anchor.id} advertises a look-alike ${anchor.assetCode} issuer ` +
+            `(${issuerCheck.advertisedIssuer}); expected ${issuerCheck.expectedIssuer}`
+        );
       }
       return {
         ...anchor,
