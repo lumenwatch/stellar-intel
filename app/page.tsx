@@ -5,6 +5,7 @@ import { Hero } from '@/components/landing/Hero';
 import { StatBar } from '@/components/landing/StatBar';
 import { CorridorStrip } from '@/components/landing/CorridorStrip';
 import { ComparisonTeaser } from '@/components/landing/ComparisonTeaser';
+import { RatePreview } from '@/components/landing/RatePreview';
 import { Faq } from '@/components/landing/Faq';
 import { FeatureGrid } from '@/components/landing/FeatureGrid';
 import { LandingSection } from '@/components/landing/LandingSection';
@@ -67,6 +68,14 @@ export default function HomePage() {
 
       {/* Comparison teaser */}
       <ComparisonTeaser />
+
+      {/* Live rate preview */}
+      <section>
+        <h2 className="mb-6 text-xl font-semibold text-gray-900 dark:text-white">
+          Live rate preview
+        </h2>
+        <RatePreview />
+      </section>
 
       {/* Module card */}
       <LandingSection delay={200}>
