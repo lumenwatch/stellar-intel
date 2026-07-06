@@ -119,13 +119,18 @@ partial, refunded, expired, or error) is appended to the outcome log
 aggregate these outcomes over 7-, 30-, and 90-day windows.
 
 The composite score formula
-([`lib/reputation/composite.ts`](../lib/reputation/composite.ts)) weights
-three factors equally per transaction — fill rate, slippage, and settlement
-speed — so all transactions within a window contribute with equal weight.
+([`lib/reputation/composite.ts`](../lib/reputation/composite.ts)) combines the
+three factors as:
 
-<!-- TODO: verify equal weighting vs recency bias with maintainer — the
-     current implementation in aggregate.ts uses a flat window with no
-     exponential decay -->
+```
+composite = fillRate × (1 − slippage) ÷ (settleSeconds / 300)
+```
+
+A score of `1.0` means a perfect fill, zero slippage, at exactly the 300-second
+reference settle time; values above `1.0` indicate faster-than-reference
+settlement. Aggregation over each window uses a **flat window** — every
+transaction in the window contributes with equal weight, with no exponential
+decay or recency bias ([`lib/reputation/aggregate.ts`](../lib/reputation/aggregate.ts)).
 
 **Progression toward live status:**
 

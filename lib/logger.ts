@@ -27,11 +27,11 @@ export function getCorrelationId(): string | undefined {
   return asyncLocalStorage.getStore()?.correlationId;
 }
 
-export function runWithCorrelationId<T>(correlationId: string, fn: () => T): T {
+function runWithCorrelationId<T>(correlationId: string, fn: () => T): T {
   return asyncLocalStorage.run({ correlationId }, fn);
 }
 
-export function getLogger(moduleName: string) {
+function getLogger(moduleName: string) {
   const store = asyncLocalStorage.getStore();
   return baseLogger.child({
     module: moduleName,
@@ -39,7 +39,7 @@ export function getLogger(moduleName: string) {
   });
 }
 
-export function getCorrelationIdFromRequest(request: NextRequest): string {
+function getCorrelationIdFromRequest(request: NextRequest): string {
   const provided = request.headers.get('x-correlation-id')?.trim();
   return provided && provided.length > 0 ? provided : randomCorrelationId();
 }

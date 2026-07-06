@@ -110,9 +110,6 @@ export interface Sep1TomlData {
   seps?: Array<'sep6' | 'sep10' | 'sep24' | 'sep31' | 'sep38'>;
 }
 
-/** A normalized stellar.toml response for an anchor resolved via SEP-1. */
-export type ResolvedAnchorToml = Sep1TomlData;
-
 /** A resolved anchor with protocol capabilities attached. */
 export type ResolvedAnchor = Anchor & Sep1TomlData;
 
@@ -279,15 +276,6 @@ export interface Sep24Transaction {
   refunds?: Sep24Refunds | undefined;
 }
 
-// ─── Post-execute handoff ─────────────────────────────────────────────────────
-
-/** Data passed from ExecuteDrawer to the page after a successful withdrawal initiation. */
-export interface WithdrawHandoffPayload {
-  transactionId: string;
-  transferServer: string;
-  jwt: string;
-}
-
 // ─── Intent schema ────────────────────────────────────────────────────────────
 
 /** Delivery method preference for fiat payout. */
@@ -372,12 +360,6 @@ export type SolverResult =
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 
-/** Shape returned by GET /api/rates. */
-export interface ApiRatesResponse {
-  rates: RateComparison;
-  fetchedAt: string;
-}
-
 /** Shape returned by API routes on error. */
 export interface ApiError {
   code: string;
@@ -396,8 +378,6 @@ export interface Country {
   flag: string;
 }
 
-export type OfframpSortKey = 'rate' | 'fee' | 'time' | 'total';
-export type SortDirection = 'asc' | 'desc';
 export type RiskLevel = 'low' | 'medium' | 'high';
 
 // ─── ExecuteDrawer state machine ─────────────────────────────────────────────
@@ -444,12 +424,6 @@ export interface SwapRoute {
 export interface KycPostMessage {
   type: 'stellar_transaction_created' | 'stellar_cancel';
   transaction_id?: string;
-}
-
-/** Configuration for KYC iframe component */
-export interface KycIframeConfig {
-  url: string;
-  origin: string;
 }
 
 // ─── SEP-6 ────────────────────────────────────────────────────────────────────

@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { Keypair } from '@stellar/stellar-sdk';
 import { withRequestLogger } from '@/lib/logger';
+import { STELLAR_PUBKEY_PATTERN } from '@/lib/patterns';
 import type { ApiError } from '@/types';
 
 const DisputeBodySchema = z.object({
   intentHash: z.string().regex(/^[0-9a-f]{64}$/, {
     message: 'intentHash must be a lowercase hex-encoded SHA-256 (64 chars)',
   }),
-  publicKey: z.string().regex(/^G[A-Z0-9]{55}$/, {
+  publicKey: z.string().regex(STELLAR_PUBKEY_PATTERN, {
     message: 'publicKey must be a valid Stellar public key (G…, 56 chars)',
   }),
   signature: z.string().min(1, { message: 'signature is required' }),

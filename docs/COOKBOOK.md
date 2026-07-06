@@ -52,9 +52,9 @@ Score formula: `fillRate × (1 − slippage) ÷ (settleSeconds / 300)` — see
 
 ## 4. Off-ramp via an AI agent (MCP)
 
-Install the MCP server and let an agent price/compare, then sign with the user's
-wallet to execute. See [`docs/MCP.md`](MCP.md) for `claude mcp add` instructions
-and tool list. The agent cannot spend without a user signature.
+Run the MCP server and let an agent price/compare, then sign with the user's
+wallet to execute. See [`docs/MCP.md`](MCP.md) for the `npx tsx scripts/mcp/server.ts`
+run command and tool list. The agent cannot spend without a user signature.
 
 ## 5. Consume the reputation oracle on-chain
 

@@ -35,7 +35,7 @@ const eslintConfig = defineConfig([
             {
               group: ['**/estimatedRates', '**/estimatedRates.ts'],
               message:
-                'Estimated rates are banned (#005). Show source: "unavailable" with null fields instead. See lib/stellar/estimatedRates.ts for context.',
+                'Estimated rates are banned (#005). Show source: "unavailable" with null fields instead.',
             },
           ],
         },

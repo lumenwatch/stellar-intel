@@ -22,6 +22,7 @@ import {
 } from '@stellar/stellar-sdk';
 import { hashIntent, type Intent } from '@/lib/intent/hash';
 import { USDC_ISSUER } from '@/lib/config';
+import { STELLAR_PUBKEY_PATTERN, AMOUNT_7DP_PATTERN } from '@/lib/patterns';
 
 // ─── Anchor routing table (corridor → anchor) ────────────────────────────────
 // Mirrors app/api/intent/offramp/route.ts. Each corridor maps to the anchor we
@@ -62,7 +63,7 @@ export const QuoteInputSchema = z.object({
   to: z.string().min(1, 'to currency is required'),
   amount: z
     .string()
-    .regex(/^\d+(\.\d{1,7})?$/, 'amount must be a positive decimal (≤7 dp)')
+    .regex(AMOUNT_7DP_PATTERN, 'amount must be a positive decimal (≤7 dp)')
     .refine((v) => parseFloat(v) > 0, 'amount must be greater than zero'),
 });
 export type QuoteInput = z.infer<typeof QuoteInputSchema>;
@@ -84,8 +85,8 @@ export const PrepareInputSchema = z.object({
   type: z.literal('offramp'),
   sourceAsset: z.string().min(1),
   destinationAsset: z.string().min(1),
-  amount: z.string().regex(/^\d+(\.\d{1,7})?$/, 'amount must be a positive decimal (≤7 dp)'),
-  sender: z.string().regex(/^G[A-Z0-9]{55}$/, 'sender must be a Stellar public key'),
+  amount: z.string().regex(AMOUNT_7DP_PATTERN, 'amount must be a positive decimal (≤7 dp)'),
+  sender: z.string().regex(STELLAR_PUBKEY_PATTERN, 'sender must be a Stellar public key'),
   recipient: z.string().min(1),
 });
 export type PrepareInput = z.infer<typeof PrepareInputSchema>;

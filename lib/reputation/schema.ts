@@ -1,12 +1,10 @@
 import { z } from 'zod';
 import { OUTCOME_STATUSES, type OutcomeLogRow, type OutcomeStatus } from '@/types/reputation';
+import { SIGNED_AMOUNT_PATTERN } from '@/lib/patterns';
 
 // ─── Zod schema for the outcome log row (Issue #127 / #218) ────────────────────
 
-const decimalString = z
-  .string()
-  .min(1)
-  .regex(/^-?\d+(\.\d+)?$/, 'must be a decimal string');
+const decimalString = z.string().min(1).regex(SIGNED_AMOUNT_PATTERN, 'must be a decimal string');
 
 /** Validates every persisted/ingested outcome row. */
 export const OutcomeLogRowSchema = z.object({

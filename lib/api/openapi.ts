@@ -4,6 +4,7 @@ import {
   extendZodWithOpenApi,
 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
+import { STELLAR_PUBKEY_PATTERN, AMOUNT_PATTERN, AMOUNT_7DP_PATTERN } from '@/lib/patterns';
 
 extendZodWithOpenApi(z);
 
@@ -16,8 +17,8 @@ const OfframpIntentSchema = registry.register(
   z.object({
     anchorId: z.string().min(1),
     corridorId: z.string().min(1),
-    amount: z.string().regex(/^\d+(\.\d{1,7})?$/),
-    publicKey: z.string().regex(/^G[A-Z0-9]{55}$/),
+    amount: z.string().regex(AMOUNT_7DP_PATTERN),
+    publicKey: z.string().regex(STELLAR_PUBKEY_PATTERN),
   })
 );
 
@@ -27,7 +28,7 @@ const SignedIntentEnvelopeSchema = registry.register(
     intent: OfframpIntentSchema,
     hash: z.string().regex(/^[0-9a-f]{64}$/),
     signature: z.string().min(1),
-    publicKey: z.string().regex(/^G[A-Z0-9]{55}$/),
+    publicKey: z.string().regex(STELLAR_PUBKEY_PATTERN),
   })
 );
 
@@ -37,8 +38,8 @@ registry.register(
     id: z.string().min(1),
     from: z.string().min(1).describe('Source asset identifier (e.g. "stellar:USDC:GA5...")'),
     to: z.string().min(1).describe('Destination fiat identifier (e.g. "iso4217:NGN")'),
-    amount: z.string().regex(/^\d+(\.\d+)?$/),
-    floor: z.string().regex(/^\d+(\.\d+)?$/),
+    amount: z.string().regex(AMOUNT_PATTERN),
+    floor: z.string().regex(AMOUNT_PATTERN),
     deadline: z.string().describe('RFC 3339 datetime after which the intent must not execute'),
     recipient: z.string().min(1),
     nonce: z
@@ -83,7 +84,7 @@ const IntentRequestSchema = registry.register(
     type: z.literal('offramp'),
     sourceAsset: z.string().min(1),
     destinationAsset: z.string().min(1),
-    amount: z.string().regex(/^\d+(\.\d+)?$/),
+    amount: z.string().regex(AMOUNT_PATTERN),
     sender: z.string().min(1).describe('Stellar public key of the sender'),
     recipient: z.string().min(1).describe('Destination address for the payout'),
   })

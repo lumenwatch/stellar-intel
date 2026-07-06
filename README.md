@@ -77,7 +77,7 @@ and the Soroban oracle wiring live in
 | Framework     | Next.js 16, React 19, TypeScript |
 | Styling       | Tailwind CSS v4                  |
 | Data fetching | SWR                              |
-| Blockchain    | `@stellar/stellar-sdk` v15       |
+| Blockchain    | `@stellar/stellar-sdk` v16       |
 | Deployment    | Vercel                           |
 
 ---
@@ -122,14 +122,14 @@ Copy `.env.example` to `.env.local` and set the following variables. The server
 validates these at boot in `lib/config.ts` and fails fast on a missing or
 malformed required value.
 
-| Variable                         | Required | Default                                      | Description                                                       |
-| -------------------------------- | -------- | -------------------------------------------- | ----------------------------------------------------------------- |
-| `NEXT_PUBLIC_STELLAR_NETWORK`    | Yes      | `mainnet`                                    | Stellar network (`mainnet` or `testnet`).                         |
-| `NEXT_PUBLIC_HORIZON_URL`        | Yes      | `https://horizon.stellar.org`                | Horizon server URL.                                               |
-| `NEXT_PUBLIC_USDC_ISSUER`        | Yes      | —                                            | USDC issuer public key (`G…`, 56 chars). Validated; no default.   |
-| `NEXT_PUBLIC_STELLAR_EXPERT_URL` | No       | `https://api.stellar.expert/explorer/public` | Stellar Expert API base for transaction links.                    |
-| `NEXT_PUBLIC_APP_NAME`           | No       | `Stellar Intel`                              | Display name used in the UI.                                      |
-| `ADMIN_SECRET_KEY`               | Yes\*    | —                                            | \*Required only to access `/admin/disputes` and admin API routes. |
+| Variable                         | Required | Default                                      | Description                                                               |
+| -------------------------------- | -------- | -------------------------------------------- | ------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_STELLAR_NETWORK`    | Yes      | `mainnet`                                    | Stellar network (`mainnet` or `testnet`).                                 |
+| `NEXT_PUBLIC_HORIZON_URL`        | Yes      | `https://horizon.stellar.org`                | Horizon server URL.                                                       |
+| `NEXT_PUBLIC_USDC_ISSUER`        | Yes      | —                                            | USDC issuer public key (`G…`, 56 chars). Validated; no default.           |
+| `NEXT_PUBLIC_STELLAR_EXPERT_URL` | No       | `https://api.stellar.expert/explorer/public` | Stellar Expert API base for transaction links.                            |
+| `NEXT_PUBLIC_APP_NAME`           | Yes      | —                                            | Display name used in the UI. Validated; no default (boot fails if unset). |
+| `ADMIN_SECRET_KEY`               | Yes\*    | —                                            | \*Required only to access `/admin/disputes` and admin API routes.         |
 
 `NEXT_PUBLIC_USDC_ISSUER` has no default — set it (Circle's canonical USDC issuer
 for mainnet). To point at the Stellar testnet, set:
@@ -145,17 +145,17 @@ NEXT_PUBLIC_HORIZON_URL=https://horizon-testnet.stellar.org
 
 The full doc surface lives under [`docs/`](docs/). Start with:
 
-| Document                                               | What it covers                                                                       |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
-| [docs/PROPOSAL.md](docs/PROPOSAL.md)                   | Grant thesis: execution-layer framing, intent primitive, reputation oracle moat.     |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)           | System diagram, intent router, Soroban oracle, MCP/agent surface, SEP-10/24/38 flow. |
-| [docs/ROADMAP.md](docs/ROADMAP.md)                     | Milestone waves v1.0 → v5, with tickable per-wave scope.                             |
-| [docs/INTENT_API.md](docs/INTENT_API.md)               | Intent schema, signing rules, replay protection, `curl` + TS snippets.               |
-| [docs/ANCHOR_REPUTATION.md](docs/ANCHOR_REPUTATION.md) | Scoring methodology, composite formula, dispute process.                             |
-| [docs/ORACLE_SPEC.md](docs/ORACLE_SPEC.md)             | Soroban contract interface, consumer examples, publisher whitelist policy.           |
-| [docs/MCP.md](docs/MCP.md)                             | Tool list, `claude mcp add` instructions, example prompts, agent-safety notes.       |
-| [docs/SECURITY.md](docs/SECURITY.md)                   | Non-custodial guarantee, key handling, disclosure email, supply-chain policy.        |
-| [docs/FAQ.md](docs/FAQ.md)                             | "Is this custodial?", "what if an anchor fails?", "how are we different?".           |
+| Document                                               | What it covers                                                                                    |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| [docs/PROPOSAL.md](docs/PROPOSAL.md)                   | Grant thesis: execution-layer framing, intent primitive, reputation oracle moat.                  |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)           | System diagram, intent router, Soroban oracle, MCP/agent surface, SEP-10/24/38 flow.              |
+| [docs/ROADMAP.md](docs/ROADMAP.md)                     | Milestone waves v1.0 → v5, with tickable per-wave scope.                                          |
+| [docs/INTENT_API.md](docs/INTENT_API.md)               | Intent schema, signing rules, replay protection, `curl` + TS snippets.                            |
+| [docs/ANCHOR_REPUTATION.md](docs/ANCHOR_REPUTATION.md) | Scoring methodology, composite formula, dispute process.                                          |
+| [docs/ORACLE_SPEC.md](docs/ORACLE_SPEC.md)             | Soroban contract interface, consumer examples, publisher whitelist policy.                        |
+| [docs/MCP.md](docs/MCP.md)                             | Tool list, `npx tsx scripts/mcp/server.ts` run instructions, example prompts, agent-safety notes. |
+| [docs/SECURITY.md](docs/SECURITY.md)                   | Non-custodial guarantee, key handling, disclosure email, supply-chain policy.                     |
+| [docs/FAQ.md](docs/FAQ.md)                             | "Is this custodial?", "what if an anchor fails?", "how are we different?".                        |
 
 ---
 

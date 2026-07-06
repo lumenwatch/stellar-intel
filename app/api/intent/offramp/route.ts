@@ -13,6 +13,7 @@ import { hashIntent } from '@/lib/intent/hash';
 import { USDC_ISSUER } from '@/lib/config';
 import { withRequestLogger } from '@/lib/logger';
 import { recordIntentError, recordIntentSuccess } from '@/lib/metrics';
+import { AMOUNT_PATTERN } from '@/lib/patterns';
 import type { Intent } from '@/lib/intent/hash';
 import type { ApiError } from '@/types';
 
@@ -22,7 +23,7 @@ const IntentSchema = z.object({
   type: z.literal('offramp'),
   sourceAsset: z.string().min(1),
   destinationAsset: z.string().min(1),
-  amount: z.string().regex(/^\d+(\.\d+)?$/, 'amount must be a positive decimal string'),
+  amount: z.string().regex(AMOUNT_PATTERN, 'amount must be a positive decimal string'),
   sender: z.string().min(1),
   recipient: z.string().min(1),
 });

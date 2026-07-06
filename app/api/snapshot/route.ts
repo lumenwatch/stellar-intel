@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withRequestLogger } from '@/lib/logger';
 import { getBestAnchorSnapshot } from '@/lib/stellar/snapshot';
+import { AMOUNT_PATTERN } from '@/lib/patterns';
 
 export const runtime = 'nodejs';
 
@@ -9,8 +10,6 @@ export const runtime = 'nodejs';
 // snapshot is additionally memoized in-process. A post-deploy cron can GET this
 // endpoint to warm the cache. See lib/stellar/snapshot.ts.
 export const revalidate = 600;
-
-const AMOUNT_PATTERN = /^\d+(\.\d+)?$/;
 
 // ─── GET /api/snapshot?amount=100 ────────────────────────────────────────────
 //
