@@ -1,8 +1,14 @@
 import Link from 'next/link';
-import { Zap } from 'lucide-react';
+import { ArrowRight, Trophy, TrendingUp, Zap } from 'lucide-react';
+import { useAnchorRates } from '@/hooks/useAnchorRates';
+import { formatCurrency, formatRate } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/Skeleton';
+
+const HERO_CORRIDOR_ID = 'usdc-ngn';
+const HERO_AMOUNT = '100';
 
 export function Hero() {
-  const { rates, isLoading } = useAnchorRates(DEFAULT_CORRIDOR_ID, DEFAULT_AMOUNT);
+  const { rates, isLoading } = useAnchorRates(HERO_CORRIDOR_ID, HERO_AMOUNT);
   const bestRate =
     rates?.rates.find((rate) => rate.anchorId === rates.bestRateId) ?? rates?.rates[0] ?? null;
   const leaderboardPreview =
@@ -40,6 +46,18 @@ export function Hero() {
         >
           View anchors
         </Link>
+      </div>
+      <div className="mx-auto mt-12 grid max-w-4xl gap-4 text-left sm:grid-cols-2">
+        <div className="rounded-2xl border border-gray-200 p-6 dark:border-gray-700">
+          {loading ? <RatePreviewSkeleton /> : <RatePreviewCard bestRate={bestRate} />}
+        </div>
+        <div className="rounded-2xl border border-gray-200 p-6 dark:border-gray-700">
+          {loading ? (
+            <LeaderboardTeaserSkeleton />
+          ) : (
+            <LeaderboardTeaser entries={leaderboardPreview} />
+          )}
+        </div>
       </div>
     </section>
   );
