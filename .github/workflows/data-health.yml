@@ -84,3 +84,69 @@ jobs:
         if: failure()
         run: |
           echo "::error::One or more data fetcher health checks failed. Review the steps above."
+
+  anchor-registry:
+    name: Anchor registry SEP-24 validation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Validate every registered anchor's toml + SEP-24 endpoint
+        id: validate
+        run: |
+          set -euo pipefail
+          node scripts/validate-anchors.mjs --dry-run | tee /tmp/anchor-validate.log
+          DEGRADED=$(grep -c 'DEGRADED' /tmp/anchor-validate.log || true)
+          echo "degraded=${DEGRADED:-0}" >> "$GITHUB_OUTPUT"
+
+      - name: Open tracking issue on anchor degradation
+        if: steps.validate.outputs.degraded != '0'
+        uses: actions/github-script@v9
+        env:
+          VALIDATE_LOG_PATH: /tmp/anchor-validate.log
+        with:
+          script: |
+            const fs = require('fs');
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `[data-health] anchor degraded — ${today}`;
+
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'anchor-degraded',
+            });
+            if (existing.some((issue) => issue.title === title)) {
+              console.log('Tracking issue for today already open; skipping.');
+              return;
+            }
+
+            const summary = fs.readFileSync(process.env.VALIDATE_LOG_PATH, 'utf8');
+            const body = [
+              'The hourly data-health check found one or more anchors failing SEP-24',
+              'resolution for `ANCHOR_DEGRADE_THRESHOLD` consecutive runs (default: 3).',
+              '',
+              `- Workflow run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              '',
+              '```',
+              summary.trim(),
+              '```',
+            ].join('\n');
+
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title,
+              body,
+              labels: ['anchor-degraded'],
+            });
