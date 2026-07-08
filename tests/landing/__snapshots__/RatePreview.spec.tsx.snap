@@ -1,0 +1,239 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`RatePreview > matches the visual snapshot in the loading state 1`] = `
+<div
+  class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+>
+  <table
+    class="w-full text-sm"
+  >
+    <tbody>
+      <tr
+        class="border-t border-gray-200 dark:border-gray-700"
+      >
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+      </tr>
+      <tr
+        class="border-t border-gray-200 dark:border-gray-700"
+      >
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+      </tr>
+      <tr
+        class="border-t border-gray-200 dark:border-gray-700"
+      >
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+      </tr>
+      <tr
+        class="border-t border-gray-200 dark:border-gray-700"
+      >
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+        <td
+          class="px-4 py-3"
+        >
+          <div
+            class="h-4 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
+
+exports[`RatePreview > matches the visual snapshot with live snapshot data 1`] = `
+<div
+  class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+>
+  <table
+    class="w-full text-sm"
+  >
+    <thead>
+      <tr
+        class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+      >
+        <th
+          class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400"
+        >
+          Corridor
+        </th>
+        <th
+          class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400"
+        >
+          Best Anchor
+        </th>
+        <th
+          class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+        >
+          Rate
+        </th>
+        <th
+          class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+        >
+          You Receive
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+        class="border-t border-gray-200 dark:border-gray-700"
+      >
+        <td
+          class="px-4 py-3"
+        >
+          <span
+            class="font-medium text-gray-900 dark:text-white"
+          >
+            USDC
+            /
+            NGN
+          </span>
+        </td>
+        <td
+          class="px-4 py-3 text-gray-700 dark:text-gray-300"
+        >
+          Cowrie Exchange
+        </td>
+        <td
+          class="px-4 py-3 text-right text-gray-700 dark:text-gray-300"
+        >
+          1,580 NGN
+        </td>
+        <td
+          class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white"
+        >
+          154,840 NGN
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+`;
