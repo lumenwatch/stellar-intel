@@ -560,7 +560,7 @@ stellar-intel/
 │       ├── sep38.ts               # ✅ firm-quote RFQ (SEP-38)
 │       ├── sep6.ts                # 🛠️ programmatic withdraw (SEP-6) — in progress
 │       └── horizon.ts             # ✅ build + submit payment
-├── lib/intent/                    # ✅ canonicalize, hash, sign, replay, envelope
+├── lib/intent/                    # ✅ schema, hash/canonicalize, sign, replay
 ├── lib/router/                    # ✅ solver (solve.ts)
 ├── lib/reputation/                # ✅ store (SQLite/Postgres), composite, bands, disputes
 ├── lib/publisher/                 # 🛠️ v2 outcome publisher
