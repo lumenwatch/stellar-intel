@@ -1,0 +1,282 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Hero > matches the visual snapshot with live rate + leaderboard data 1`] = `
+<section
+  aria-labelledby="hero-heading"
+  class="flex flex-col items-center justify-center bg-gradient-to-br from-background via-bg-subtle to-background py-20 text-center sm:py-28 dark:from-background dark:via-bg-subtle dark:to-background space-y-6"
+>
+  <div
+    class="inline-flex items-center gap-2 rounded-full bg-accent-subtle px-4 py-1.5 text-sm font-medium text-accent dark:bg-accent-subtle dark:text-accent"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-zap h-3.5 w-3.5"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"
+      />
+    </svg>
+    Stellar Execution Layer
+  </div>
+  <h1
+    class="max-w-4xl text-4xl font-bold tracking-tight leading-tight text-primary-text dark:text-primary-text sm:text-5xl lg:text-6xl"
+    id="hero-heading"
+  >
+    The execution layer for
+    <br
+      class="hidden sm:block"
+    />
+    <span
+      class="text-accent dark:text-accent"
+    >
+      stablecoin off-ramps.
+    </span>
+  </h1>
+  <p
+    class="mx-auto max-w-2xl text-lg text-secondary-text dark:text-secondary-text sm:text-xl"
+  >
+    Compare live SEP-38 quotes across every Stellar anchor, then settle a non-custodial USDC off-ramp to Nigeria, Kenya, Ghana, Mexico, and more — in a single signed intent.
+  </p>
+  <div
+    class="flex flex-wrap items-center justify-center gap-4 pt-2"
+  >
+    <a
+      href="/offramp"
+    >
+      Off-ramp now
+    </a>
+    <a
+      href="/anchors"
+    >
+      View anchors
+    </a>
+  </div>
+  <div
+    class="grid w-full max-w-4xl gap-4 pt-4 text-left sm:grid-cols-2"
+  >
+    <div
+      class="rounded-2xl border border-gray-200 p-6 dark:border-gray-700"
+    >
+      <div
+        class="flex min-h-[184px] flex-col justify-between"
+      >
+        <div>
+          <div
+            class="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trending-up h-3.5 w-3.5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M16 7h6v6"
+              />
+              <path
+                d="m22 7-8.5 8.5-5-5L2 17"
+              />
+            </svg>
+            Live rate preview
+          </div>
+          <p
+            class="text-sm text-gray-500 dark:text-gray-400"
+          >
+            Previewing the best live quote for 100 USDC → NGN.
+          </p>
+          <div
+            class="mt-5 text-sm font-medium text-gray-500 dark:text-gray-400"
+          >
+            Best live quote
+          </div>
+          <div
+            class="mt-1 text-3xl font-bold text-gray-900 dark:text-white"
+          >
+            NGN 154,840.00
+          </div>
+          <div
+            class="mt-2 text-sm text-gray-600 dark:text-gray-300"
+          >
+            Cowrie Exchange
+          </div>
+          <div
+            class="mt-1 text-sm text-gray-500 dark:text-gray-400"
+          >
+            1 USDC = 1,580 NGN
+          </div>
+        </div>
+        <a
+          href="/offramp"
+        >
+          Compare all live rates
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-arrow-right h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="m12 5 7 7-7 7"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div
+      class="rounded-2xl border border-gray-200 p-6 dark:border-gray-700"
+    >
+      <div
+        class="flex min-h-[184px] flex-col justify-between"
+      >
+        <div>
+          <div
+            class="mb-3 inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trophy h-3.5 w-3.5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978"
+              />
+              <path
+                d="M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978"
+              />
+              <path
+                d="M18 9h1.5a1 1 0 0 0 0-5H18"
+              />
+              <path
+                d="M4 22h16"
+              />
+              <path
+                d="M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z"
+              />
+              <path
+                d="M6 9H4.5a1 1 0 0 1 0-5H6"
+              />
+            </svg>
+            Leaderboard teaser
+          </div>
+          <p
+            class="text-sm text-gray-500 dark:text-gray-400"
+          >
+            Top anchors in the default USDC/NGN corridor right now.
+          </p>
+          <div
+            class="mt-5 space-y-3"
+          >
+            <div
+              class="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-700"
+            >
+              <div>
+                <div
+                  class="text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  #
+                  1
+                   
+                  Cowrie Exchange
+                </div>
+                <div
+                  class="text-xs text-gray-500 dark:text-gray-400"
+                >
+                  Current landed value
+                </div>
+              </div>
+              <div
+                class="text-sm font-semibold text-gray-900 dark:text-white"
+              >
+                NGN 154,840.00
+              </div>
+            </div>
+            <div
+              class="flex items-center justify-between rounded-xl border border-gray-200 px-4 py-3 dark:border-gray-700"
+            >
+              <div>
+                <div
+                  class="text-sm font-medium text-gray-900 dark:text-white"
+                >
+                  #
+                  2
+                   
+                  MoneyGram
+                </div>
+                <div
+                  class="text-xs text-gray-500 dark:text-gray-400"
+                >
+                  Current landed value
+                </div>
+              </div>
+              <div
+                class="text-sm font-semibold text-gray-900 dark:text-white"
+              >
+                NGN 153,200.00
+              </div>
+            </div>
+          </div>
+        </div>
+        <a
+          href="/anchors?corridor=usdc-ngn"
+        >
+          View corridor leaderboard
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-arrow-right h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="m12 5 7 7-7 7"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+`;
