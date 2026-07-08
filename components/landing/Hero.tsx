@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowRight, Trophy, TrendingUp, Zap } from 'lucide-react';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
