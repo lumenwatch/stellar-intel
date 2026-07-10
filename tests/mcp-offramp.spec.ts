@@ -4,16 +4,65 @@
  * Runs in the Node environment (not jsdom): Keypair.random() relies on Node's
  * crypto for secure entropy, which jsdom does not provide.
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Keypair } from '@stellar/stellar-sdk';
-import {
+import type { ServerRatesResult } from '@/lib/stellar/server-rates';
+
+// getQuote now sources live rates from fetchCorridorRates instead of a static
+// table — stub the network-hitting live-rate fetch so these tests stay fast
+// and deterministic, while still exercising the real plumbing between them.
+const LIVE_RATES: Record<string, { anchorId: string; totalReceived: (amount: number) => number }> =
+  {
+    'usdc-ngn': { anchorId: 'cowrie', totalReceived: (amount) => (amount - 2) * 1600 },
+    'usdc-kes': { anchorId: 'flutterwave', totalReceived: (amount) => (amount - 1.5) * 129 },
+  };
+
+/** Sentinel amount that makes the stub simulate the routed anchor being unquotable. */
+const RATE_UNAVAILABLE_AMOUNT = '999999';
+
+vi.mock('@/lib/stellar/server-rates', () => ({
+  fetchCorridorRates: vi.fn(async (id: string, amount: string): Promise<ServerRatesResult> => {
+    if (amount === RATE_UNAVAILABLE_AMOUNT) {
+      return {
+        corridorId: id,
+        rates: [],
+        pending: [],
+        bestRateId: '',
+        errors: [{ anchorId: 'cowrie', anchorName: 'Cowrie', reason: 'anchor unreachable' }],
+      };
+    }
+    const route = LIVE_RATES[id];
+    if (!route) return { corridorId: id, rates: [], pending: [], bestRateId: '', errors: [] };
+    return {
+      corridorId: id,
+      rates: [
+        {
+          anchorId: route.anchorId,
+          anchorName: route.anchorId,
+          corridorId: id,
+          fee: null,
+          feeType: 'flat',
+          exchangeRate: 0,
+          totalReceived: route.totalReceived(Number(amount)),
+          source: 'sep38',
+          updatedAt: new Date(),
+        },
+      ],
+      pending: [],
+      bestRateId: route.anchorId,
+      errors: [],
+    };
+  }),
+}));
+
+const {
   getQuote,
   prepareIntent,
   QuoteOutputSchema,
   PrepareOutputSchema,
   OfframpToolError,
   corridorId,
-} from '@/lib/mcp/offramp';
+} = await import('@/lib/mcp/offramp');
 
 describe('intel.offramp.quote (#135)', () => {
   it('returns a schema-valid quote for a known corridor', async () => {
@@ -21,7 +70,7 @@ describe('intel.offramp.quote (#135)', () => {
     expect(() => QuoteOutputSchema.parse(quote)).not.toThrow();
     expect(quote.anchor).toBe('cowrie');
     expect(quote.quoteId).toMatch(/^[0-9a-f]{64}$/);
-    // (100 - 2 fee) * 1600 = 156800
+    // live-rate stub: (100 - 2 fee) * 1600 = 156800
     expect(quote.netReceived).toBe('156800');
     expect(new Date(quote.expiresAt).getTime()).toBeGreaterThan(Date.now());
   });
@@ -29,7 +78,7 @@ describe('intel.offramp.quote (#135)', () => {
   it('computes net received for a second corridor', async () => {
     const quote = await getQuote({ from: 'USDC', to: 'KES', amount: '50' });
     expect(quote.anchor).toBe('flutterwave');
-    // (50 - 1.5) * 129 = 6256.5
+    // live-rate stub: (50 - 1.5) * 129 = 6256.5
     expect(quote.netReceived).toBe('6256.5');
   });
 
@@ -43,6 +92,12 @@ describe('intel.offramp.quote (#135)', () => {
     await expect(getQuote({ from: 'USDC', to: 'ZZZ', amount: '10' })).rejects.toBeInstanceOf(
       OfframpToolError
     );
+  });
+
+  it('throws RATE_UNAVAILABLE when the routed anchor has no live quote', async () => {
+    await expect(
+      getQuote({ from: 'USDC', to: 'NGN', amount: RATE_UNAVAILABLE_AMOUNT })
+    ).rejects.toMatchObject({ code: 'RATE_UNAVAILABLE' });
   });
 
   it('rejects an invalid amount via schema', async () => {

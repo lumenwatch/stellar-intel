@@ -11,31 +11,21 @@
  * it is trivially unit-testable and reusable by the server in scripts/mcp.
  */
 import { z } from 'zod';
-import {
-  Asset,
-  Networks,
-  TransactionBuilder,
-  Operation,
-  Memo,
-  BASE_FEE,
-  Account,
-} from '@stellar/stellar-sdk';
 import { hashIntent, type Intent } from '@/lib/intent/hash';
 import { USDC_ISSUER } from '@/lib/config';
 import { STELLAR_PUBKEY_PATTERN, AMOUNT_7DP_PATTERN } from '@/lib/patterns';
+import { fetchCorridorRates } from '@/lib/stellar/server-rates';
 
 // ─── Anchor routing table (corridor → anchor) ────────────────────────────────
 // Mirrors app/api/intent/offramp/route.ts. Each corridor maps to the anchor we
-// route through plus its on-chain receiving account.
+// route through plus its on-chain receiving account. Pricing is live (see
+// fetchCorridorRates below) — this table only pins which anchor account a
+// corridor pays out to.
 
 interface AnchorRoute {
   anchorId: string;
   anchorDomain: string;
   anchorAccount: string;
-  /** Flat fee in source asset units, as a decimal string. */
-  flatFee: string;
-  /** Local-currency units received per 1 source unit (after fee). */
-  rate: string;
 }
 
 export const ANCHOR_ROUTING: Record<string, AnchorRoute> = {
@@ -43,15 +33,11 @@ export const ANCHOR_ROUTING: Record<string, AnchorRoute> = {
     anchorId: 'cowrie',
     anchorDomain: 'cowrie.exchange',
     anchorAccount: 'GAIJ3VXNY7RPPLGVVCLGBK7NPHLL5ZRKATHETOA7M7UPZPAAHEGQQIY2',
-    flatFee: '2',
-    rate: '1600',
   },
   'usdc-kes': {
     anchorId: 'flutterwave',
     anchorDomain: 'flutterwave.com',
     anchorAccount: 'GC6PVZIZYHHROHYBBOZDJ5ZZI4RH6LDSHRT4K7BA5QGZFKMZ6HAZUQAK',
-    flatFee: '1.5',
-    rate: '129',
   },
 };
 
@@ -111,7 +97,7 @@ export type PrepareOutput = z.infer<typeof PrepareOutputSchema>;
 export class OfframpToolError extends Error {
   constructor(
     message: string,
-    public readonly code: 'NO_ROUTE' | 'TX_BUILD_FAILED'
+    public readonly code: 'NO_ROUTE' | 'TX_BUILD_FAILED' | 'RATE_UNAVAILABLE'
   ) {
     super(message);
     this.name = 'OfframpToolError';
@@ -125,43 +111,29 @@ export function corridorId(from: string, to: string): string {
   return `${from.toLowerCase()}-${to.toLowerCase()}`;
 }
 
-/** Parse a decimal string into a BigInt scaled to 7 decimal places. */
-function toScaled(s: string): bigint {
-  const SCALE = 10_000_000n;
-  const [int = '0', frac = ''] = s.split('.');
-  return BigInt(int) * SCALE + BigInt(frac.slice(0, 7).padEnd(7, '0'));
+/** Render a live-rate float as a trimmed decimal string (max 7dp). */
+function formatNetReceived(value: number): string {
+  return value.toFixed(7).replace(/\.?0+$/, '');
 }
 
-/** Render a 7dp-scaled BigInt back to a trimmed decimal string. */
-function fromScaled(value: bigint): string {
-  const SCALE = 10_000_000n;
-  const whole = value / SCALE;
-  const frac = (value % SCALE).toString().padStart(7, '0').replace(/0+$/, '');
-  return `${whole}${frac ? `.${frac}` : ''}`;
-}
-
-/** Multiply two decimal strings to 7dp using BigInt (no float drift). */
-function mulDecimal(a: string, b: string): string {
-  const product = (toScaled(a) * toScaled(b)) / 10_000_000n;
-  return fromScaled(product);
-}
-
-/** Subtract decimal strings to 7dp using BigInt, floored at zero. */
-function subDecimal(a: string, b: string): string {
-  let r = toScaled(a) - toScaled(b);
-  if (r < 0n) r = 0n; // floor at zero — never report negative net received
-  return fromScaled(r);
-}
-
-/** Build an unsigned Stellar payment tx to the anchor (XDR base64). */
-export function buildUnsignedOfframpTx(
+/**
+ * Build an unsigned Stellar payment tx to the anchor (XDR base64).
+ *
+ * Dynamic import: @stellar/stellar-sdk ships ESM-flavored types that TS's
+ * Node16 resolution (used by the standalone packages/mcp build) refuses to
+ * `require()`-import statically — see packages/publisher/src/batch.ts for the
+ * same workaround. The package itself is dual CJS/ESM at runtime.
+ */
+export async function buildUnsignedOfframpTx(
   senderPublicKey: string,
   anchorAccount: string,
   amount: string,
   assetCode: string,
   assetIssuer: string,
   quoteId: string
-): string {
+): Promise<string> {
+  const { Asset, Networks, TransactionBuilder, Operation, Memo, BASE_FEE, Account } =
+    await import('@stellar/stellar-sdk');
   const asset = new Asset(assetCode, assetIssuer);
   const account = new Account(senderPublicKey, '0');
   const tx = new TransactionBuilder(account, {
@@ -181,8 +153,11 @@ export function buildUnsignedOfframpTx(
 export const QUOTE_TTL_SECONDS = 300;
 
 /**
- * Returns the best net-received quote for a corridor + amount.
- * Throws {@link OfframpToolError} with code NO_ROUTE for unknown corridors.
+ * Returns the live net-received quote for a corridor + amount, sourced from
+ * the routed anchor's own current rate (SEP-38 firm quote, falling back to
+ * SEP-24/SEP-6 fee-adjusted live FX — see fetchCorridorRates).
+ * Throws {@link OfframpToolError} with code NO_ROUTE for unknown corridors,
+ * or RATE_UNAVAILABLE when the routed anchor can't currently be quoted.
  */
 export async function getQuote(
   input: QuoteInput,
@@ -195,8 +170,16 @@ export async function getQuote(
     throw new OfframpToolError(`No route for corridor ${id}`, 'NO_ROUTE');
   }
 
-  const afterFee = subDecimal(parsed.amount, route.flatFee);
-  const netReceived = mulDecimal(afterFee, route.rate);
+  const { rates, errors } = await fetchCorridorRates(id, parsed.amount);
+  const anchorRate = rates.find((r) => r.anchorId === route.anchorId);
+  if (!anchorRate || anchorRate.totalReceived == null) {
+    const reason = errors.find((e) => e.anchorId === route.anchorId)?.reason;
+    throw new OfframpToolError(
+      `No live rate available for ${route.anchorId} on ${id}${reason ? `: ${reason}` : ''}`,
+      'RATE_UNAVAILABLE'
+    );
+  }
+  const netReceived = formatNetReceived(anchorRate.totalReceived);
 
   // A deterministic quote id derived from the corridor + amount + anchor.
   const quoteId = await hashIntent({
@@ -235,7 +218,7 @@ export async function prepareIntent(input: PrepareInput): Promise<PrepareOutput>
 
   let unsignedTx: string;
   try {
-    unsignedTx = buildUnsignedOfframpTx(
+    unsignedTx = await buildUnsignedOfframpTx(
       intent.sender,
       route.anchorAccount,
       intent.amount,
