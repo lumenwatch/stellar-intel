@@ -2,6 +2,11 @@ import { Pool } from 'pg';
 import { runBatch, DEFAULT_BATCH_SIZE, type BatchConfig, type QueryExecutor } from './batch';
 import { acquireLock, releaseLock } from './lock';
 
+// Re-exported so consumers can `import { runBatch } from '@stellarintel/publisher'`
+// and build their own BatchConfig (e.g. the main app's /api/publisher/tick route,
+// which already has its own DB pool + lock) instead of shelling out to this CLI.
+export { runBatch, DEFAULT_BATCH_SIZE, type BatchConfig, type QueryExecutor };
+
 const LOCK_KEY = 'publisher-batch';
 const LOCK_TTL_MS = 5 * 60 * 1_000;
 
@@ -49,8 +54,16 @@ async function main(): Promise<void> {
   }
 }
 
-main().catch((err: unknown) => {
-  // eslint-disable-next-line no-console
-  console.error('[publisher] Fatal error:', err);
-  process.exit(1);
-});
+// Only auto-run as a CLI (not when imported as a library — see the re-exports
+// above, used by the main app's /api/publisher/tick route).
+const invokedDirectly =
+  process.argv[1] !== undefined &&
+  /packages[\\/]publisher[\\/](src|dist)[\\/]index\.(ts|js)$/.test(process.argv[1]);
+
+if (invokedDirectly) {
+  main().catch((err: unknown) => {
+    // eslint-disable-next-line no-console
+    console.error('[publisher] Fatal error:', err);
+    process.exit(1);
+  });
+}
