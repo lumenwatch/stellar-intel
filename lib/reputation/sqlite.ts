@@ -21,7 +21,9 @@ const CREATE_TABLE_SQL = `
     stellarTransactionId TEXT,
     reconciledAt         TEXT,
     disputed             INTEGER NOT NULL DEFAULT 0,
-    disputed_reason      TEXT
+    disputed_reason      TEXT,
+    publishedAt          TEXT,
+    oracleTxHash         TEXT
   );
   CREATE INDEX IF NOT EXISTS idx_outcome_log_anchor ON outcome_log (anchorId);
 `;
@@ -41,6 +43,8 @@ interface OutcomeLogRowDb {
   reconciledAt: string | null;
   disputed: number;
   disputed_reason: string | null;
+  publishedAt: string | null;
+  oracleTxHash: string | null;
 }
 
 function fromDb(r: OutcomeLogRowDb): OutcomeLogRow {
@@ -67,11 +71,11 @@ export class SqliteReputationStore implements ReputationStore {
         `INSERT OR REPLACE INTO outcome_log
            (intentHash, anchorId, corridor, quotedRate, deliveredRate, quotedAmount,
             deliveredAmount, settleSeconds, outcome, createdAt, stellarTransactionId, reconciledAt,
-            disputed, disputed_reason)
+            disputed, disputed_reason, publishedAt, oracleTxHash)
          VALUES
            (@intentHash, @anchorId, @corridor, @quotedRate, @deliveredRate, @quotedAmount,
             @deliveredAmount, @settleSeconds, @outcome, @createdAt, @stellarTransactionId, @reconciledAt,
-            @disputed, @disputedReason)`
+            @disputed, @disputedReason, @publishedAt, @oracleTxHash)`
       )
       .run({ ...row, disputed: row.disputed ? 1 : 0 });
   }

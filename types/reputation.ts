@@ -32,4 +32,8 @@ export interface OutcomeLogRow {
   disputed: boolean;
   /** Human-readable reason supplied by the admin when disputing; null when not disputed. */
   disputedReason: string | null;
+  /** RFC 3339 timestamp when the publisher mirrored this outcome to the Soroban oracle; null until published. */
+  publishedAt: string | null;
+  /** Tx hash of the `submit_outcome` call that published this row on-chain; null until published. */
+  oracleTxHash: string | null;
 }

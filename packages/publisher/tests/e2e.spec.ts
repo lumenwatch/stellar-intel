@@ -103,6 +103,8 @@ async function seedPostgresOutcome(
     reconciledAt: null,
     disputed: false,
     disputedReason: null,
+    publishedAt: null,
+    oracleTxHash: null,
   };
   await store.append(row);
   return store;

@@ -29,7 +29,9 @@ const CREATE_TABLE_SQL = `
     stellar_transaction_id TEXT,
     reconciled_at          TIMESTAMPTZ,
     disputed               BOOLEAN NOT NULL DEFAULT FALSE,
-    disputed_reason        TEXT
+    disputed_reason        TEXT,
+    published_at           TIMESTAMPTZ,
+    oracle_tx_hash         TEXT
   );
 `;
 
@@ -51,6 +53,9 @@ function fromDb(r: Record<string, unknown>): OutcomeLogRow {
       r['reconciled_at'] == null ? null : new Date(r['reconciled_at'] as string).toISOString(),
     disputed: Boolean(r['disputed']),
     disputedReason: asString(r['disputed_reason']),
+    publishedAt:
+      r['published_at'] == null ? null : new Date(r['published_at'] as string).toISOString(),
+    oracleTxHash: asString(r['oracle_tx_hash']),
   };
 }
 
@@ -70,8 +75,8 @@ export class PostgresReputationStore implements ReputationStore {
       `INSERT INTO outcome_log
          (intent_hash, anchor_id, corridor, quoted_rate, delivered_rate, quoted_amount,
           delivered_amount, settle_seconds, outcome, created_at, stellar_transaction_id, reconciled_at,
-          disputed, disputed_reason)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+          disputed, disputed_reason, published_at, oracle_tx_hash)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        ON CONFLICT (intent_hash) DO UPDATE SET
          anchor_id = EXCLUDED.anchor_id, corridor = EXCLUDED.corridor,
          quoted_rate = EXCLUDED.quoted_rate, delivered_rate = EXCLUDED.delivered_rate,
@@ -79,7 +84,8 @@ export class PostgresReputationStore implements ReputationStore {
          settle_seconds = EXCLUDED.settle_seconds, outcome = EXCLUDED.outcome,
          created_at = EXCLUDED.created_at, stellar_transaction_id = EXCLUDED.stellar_transaction_id,
          reconciled_at = EXCLUDED.reconciled_at,
-         disputed = EXCLUDED.disputed, disputed_reason = EXCLUDED.disputed_reason`,
+         disputed = EXCLUDED.disputed, disputed_reason = EXCLUDED.disputed_reason,
+         published_at = EXCLUDED.published_at, oracle_tx_hash = EXCLUDED.oracle_tx_hash`,
       [
         row.intentHash,
         row.anchorId,
@@ -95,6 +101,8 @@ export class PostgresReputationStore implements ReputationStore {
         row.reconciledAt,
         row.disputed ? 1 : 0,
         row.disputedReason,
+        row.publishedAt,
+        row.oracleTxHash,
       ]
     );
   }

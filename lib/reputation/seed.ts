@@ -29,6 +29,8 @@ function makeBootstrapRow(anchorId: string, corridor: string, now: Date): Outcom
     reconciledAt: null,
     disputed: false,
     disputedReason: null,
+    publishedAt: null,
+    oracleTxHash: null,
   };
 }
 
