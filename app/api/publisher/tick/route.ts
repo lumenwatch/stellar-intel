@@ -1,4 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Pool } from 'pg';
+import {
+  runBatch,
+  DEFAULT_BATCH_SIZE,
+  type BatchConfig,
+  type QueryExecutor,
+} from '@stellarintel/publisher';
 import { withLoggerContext } from '@/lib/logger';
 import { acquireLock, releaseLock } from '@/lib/reputation/lock';
 
@@ -10,12 +17,45 @@ export const maxDuration = 300;
 const LOCK_KEY = 'publisher-tick';
 const LOCK_TTL_MS = 5 * 60 * 1_000;
 
+// Testnet only — mainnet oracle deployment is a separate roadmap gate (see
+// docs/ORACLE_SPEC.md). These defaults match the recorded testnet deployment
+// in .deployments/testnet.json; override via env for a redeploy.
+const DEFAULT_ORACLE_CONTRACT_ID = 'CCZ54NTEOVL2DKWCGJA5XHTHOGRDS7JHFKYWEC6QH2IMZLYNM3FBFKDG';
+const DEFAULT_NETWORK_PASSPHRASE = 'Test SDF Network ; September 2015';
+const DEFAULT_HORIZON_URL = 'https://horizon-testnet.stellar.org';
+const DEFAULT_RPC_URL = 'https://soroban-testnet.stellar.org';
+
+// Reused across invocations within the same warm Fluid Compute instance,
+// mirroring the pooling pattern lib/reputation/postgres.ts documents.
+let pool: Pool | null = null;
+
+function getExecutor(): QueryExecutor {
+  if (!pool) {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) throw new Error('DATABASE_URL is required for the publisher tick');
+    pool = new Pool({ connectionString: databaseUrl });
+  }
+  const activePool = pool;
+  return (sql, params) => activePool.query(sql, params as unknown[]);
+}
+
 async function tick(): Promise<{ submitted: number; skipped: number; txHash: string | null }> {
-  // Delegates to @stellarintel/publisher once the package ships a built artifact
-  // and the Soroban oracle contract is deployed to mainnet (Wave 2.1).
-  // Until then, the lock + scheduling scaffolding is live so the cron wires up
-  // correctly and missed runs resume cleanly on the next tick.
-  return { submitted: 0, skipped: 0, txHash: null };
+  const publisherSecret = process.env.PUBLISHER_SECRET;
+  if (!publisherSecret) {
+    throw new Error('PUBLISHER_SECRET is required for the publisher tick');
+  }
+
+  const config: BatchConfig = {
+    batchSize: process.env.BATCH_SIZE ? parseInt(process.env.BATCH_SIZE, 10) : DEFAULT_BATCH_SIZE,
+    executor: getExecutor(),
+    oracleContractId: process.env.ORACLE_CONTRACT_ID ?? DEFAULT_ORACLE_CONTRACT_ID,
+    networkPassphrase: process.env.STELLAR_NETWORK_PASSPHRASE ?? DEFAULT_NETWORK_PASSPHRASE,
+    publisherSecret,
+    horizonUrl: process.env.HORIZON_URL ?? DEFAULT_HORIZON_URL,
+    rpcUrl: process.env.SOROBAN_RPC_URL ?? DEFAULT_RPC_URL,
+  };
+
+  return runBatch(config);
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
@@ -34,6 +74,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const result = await tick();
       logger.info({ event: 'publisher_tick_complete', ...result });
       return NextResponse.json({ ok: true, ...result, tickedAt: new Date().toISOString() });
+    } catch (err) {
+      logger.error({
+        event: 'publisher_tick_failed',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : 'Publisher tick failed' },
+        { status: 500 }
+      );
     } finally {
       releaseLock(LOCK_KEY);
     }
