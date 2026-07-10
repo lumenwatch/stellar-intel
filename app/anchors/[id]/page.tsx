@@ -1,26 +1,10 @@
 import { notFound } from 'next/navigation';
 import { ANCHORS, CORRIDORS } from '@/constants';
-import { buildScorecards, type OutcomeRow } from '@/lib/reputation/aggregate';
+import { buildScorecards, mapOutcomeRows } from '@/lib/reputation/aggregate';
 import { getHistoryBuckets } from '@/lib/reputation/buckets';
 import { getReputationStore } from '@/lib/reputation/store';
 import { AnchorProfile, type AnchorProfileData } from '@/components/offramp/AnchorProfile';
 import { ScorecardCard } from '@/components/offramp/ScorecardCard';
-
-function mapOutcomeRows(
-  rows: Awaited<ReturnType<ReturnType<typeof getReputationStore>['query']>>
-): OutcomeRow[] {
-  return rows.map((row) => ({
-    intentHash: row.intentHash,
-    anchorId: row.anchorId,
-    filled: row.outcome === 'completed',
-    settleMs: row.settleSeconds !== null ? row.settleSeconds * 1000 : null,
-    slippage:
-      row.deliveredRate !== null
-        ? Math.max(0, 1 - Number.parseFloat(row.deliveredRate) / Number.parseFloat(row.quotedRate))
-        : null,
-    recordedAt: new Date(row.createdAt).getTime(),
-  }));
-}
 
 async function loadAnchorRows(anchorId: string) {
   try {
@@ -55,15 +39,17 @@ export default async function AnchorDetailPage({
   const rows = await loadAnchorRows(anchor.id);
   const outcomeRows = mapOutcomeRows(rows);
   const history = getHistoryBuckets(anchor.id, '30d', outcomeRows);
-  const scorecards = buildScorecards(outcomeRows);
 
-  const oracleTxFromRows = [...rows]
+  // The most recently mirrored-to-Soroban row for this anchor: real on-chain
+  // tx hash + when the publisher submitted it (packages/publisher writes
+  // oracle_tx_hash/published_at back to outcome_log after submit_outcome).
+  // Distinct from stellar_transaction_id, which is the off-chain settlement
+  // payment the reconciler looks up on Horizon.
+  const lastPublished = [...rows]
     .reverse()
-    .find(
-      (row) =>
-        typeof row.stellarTransactionId === 'string' &&
-        /^[0-9a-fA-F]{64}$/.test(row.stellarTransactionId)
-    )?.stellarTransactionId;
+    .find((row) => row.oracleTxHash !== null && row.publishedAt !== null);
+
+  const scorecards = buildScorecards(outcomeRows, Date.now(), lastPublished?.publishedAt ?? null);
 
   const disputes: AnchorProfileData['disputes'] = rows
     .filter(
@@ -105,7 +91,7 @@ export default async function AnchorDetailPage({
       .filter((item): item is NonNullable<typeof item> => item !== null),
     history: history.buckets,
     disputes,
-    oracleTxId: oracleTxFromRows ?? null,
+    oracleTxId: lastPublished?.oracleTxHash ?? null,
   };
 
   return (
@@ -114,7 +100,7 @@ export default async function AnchorDetailPage({
       <ScorecardCard
         anchorId={anchor.id}
         window="30d"
-        latestOracleTxHash={oracleTxFromRows ?? undefined}
+        latestOracleTxHash={lastPublished?.oracleTxHash ?? undefined}
       />
     </main>
   );

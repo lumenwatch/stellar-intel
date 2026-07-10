@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { ANCHORS, CORRIDORS } from '@/constants';
 import { withRequestLogger } from '@/lib/logger';
+import { buildScorecards, mapOutcomeRows } from '@/lib/reputation/aggregate';
+import { getReputationStore } from '@/lib/reputation/store';
+import { getScoreForCorridor, type CorridorScore } from '@/lib/oracle/read';
 import type { ApiError } from '@/types';
 
 // ─── Query param schema ────────────────────────────────────────────────────────
@@ -21,6 +24,13 @@ export interface LeaderboardEntry {
   settle_p50: number;
   slippage_p50: number;
   n: number;
+  /**
+   * The same anchor's score as read live from the reputation oracle contract
+   * (testnet) — null when no corridor filter is given (the contract's score
+   * is per anchor+corridor, so it's ambiguous without one), the anchor isn't
+   * registered on-chain yet, or the read failed. Never blocks the response.
+   */
+  onChain: CorridorScore | null;
 }
 
 export interface LeaderboardResponse {
@@ -28,21 +38,6 @@ export interface LeaderboardResponse {
   corridor: string | null;
   generatedAt: string;
 }
-
-// ─── Stub reputation data ─────────────────────────────────────────────────────
-//
-// In production this would be sourced from an aggregated outcomes store.
-// For now we derive deterministic stub metrics from the anchor registry so
-// the endpoint is fully functional and testable without a database.
-
-const STUB_METRICS: Record<
-  string,
-  { fill_rate: number; settle_p50: number; slippage_p50: number; n: number }
-> = {
-  moneygram: { fill_rate: 0.97, settle_p50: 42, slippage_p50: 0.003, n: 1240 },
-  cowrie: { fill_rate: 0.94, settle_p50: 55, slippage_p50: 0.005, n: 380 },
-  anclap: { fill_rate: 0.91, settle_p50: 68, slippage_p50: 0.008, n: 210 },
-};
 
 /**
  * Composite score formula (0–1, higher is better):
@@ -62,29 +57,57 @@ function computeComposite(fill_rate: number, settle_p50: number, slippage_p50: n
   return Math.round(raw * 10_000) / 10_000;
 }
 
-function buildLeaderboard(corridorFilter: string | undefined): LeaderboardEntry[] {
+async function buildLeaderboard(corridorFilter: string | undefined): Promise<LeaderboardEntry[]> {
   const anchors =
     corridorFilter !== undefined
       ? ANCHORS.filter((a) => a.corridors.includes(corridorFilter))
       : ANCHORS;
 
-  const entries: LeaderboardEntry[] = anchors.map((anchor) => {
-    const m = STUB_METRICS[anchor.id] ?? {
-      fill_rate: 0.9,
-      settle_p50: 90,
-      slippage_p50: 0.01,
-      n: 50,
-    };
+  const store = getReputationStore();
 
-    return {
-      anchor_id: anchor.id,
-      composite: computeComposite(m.fill_rate, m.settle_p50, m.slippage_p50),
-      fill_rate: m.fill_rate,
-      settle_p50: m.settle_p50,
-      slippage_p50: m.slippage_p50,
-      n: m.n,
-    };
-  });
+  const entries = await Promise.all(
+    anchors.map(async (anchor): Promise<LeaderboardEntry> => {
+      let rows: Awaited<ReturnType<typeof store.query>> = [];
+      try {
+        rows = await store.query({ anchorId: anchor.id });
+      } catch (error) {
+        // Postgres backend without an executor wired (local/dev without
+        // DATABASE_URL) — degrade to an empty (not fake) scorecard rather
+        // than failing the whole leaderboard.
+        if (
+          !(
+            error instanceof Error &&
+            error.message.includes('The postgres backend requires a SqlExecutor')
+          )
+        ) {
+          throw error;
+        }
+      }
+
+      const scorecard = buildScorecards(mapOutcomeRows(rows))[30];
+      const fill_rate = scorecard.state === 'ok' ? scorecard.fillRate : 0;
+      const settle_p50 = scorecard.state === 'ok' ? scorecard.settleMs.p50 / 1000 : 0;
+      const slippage_p50 = scorecard.state === 'ok' ? scorecard.slippage.p50 : 0;
+      const n = scorecard.sampleSize;
+
+      // A scorecard with no real samples yet has nothing to score — report it
+      // honestly at the bottom rather than let zeroed inputs read as "perfect"
+      // through the composite formula.
+      const composite =
+        scorecard.state === 'ok' ? computeComposite(fill_rate, settle_p50, slippage_p50) : 0;
+
+      let onChain: CorridorScore | null = null;
+      if (corridorFilter !== undefined) {
+        try {
+          onChain = await getScoreForCorridor(anchor.id, corridorFilter);
+        } catch {
+          onChain = null;
+        }
+      }
+
+      return { anchor_id: anchor.id, composite, fill_rate, settle_p50, slippage_p50, n, onChain };
+    })
+  );
 
   // Sort descending by composite score
   return entries.sort((a, b) => b.composite - a.composite);
@@ -133,7 +156,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     logger.info({ event: 'leaderboard_requested', corridor });
 
     const generatedAt = new Date().toISOString();
-    const leaderboard = buildLeaderboard(corridor);
+    const leaderboard = await buildLeaderboard(corridor);
 
     const etag = etagFor(corridor, leaderboard);
 

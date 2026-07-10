@@ -1,3 +1,5 @@
+import type { OutcomeLogRow } from '@/types/reputation';
+
 export interface AggregateKey {
   anchorId: string;
   corridor: string;
@@ -211,6 +213,26 @@ export function incrementalUpdate(
 // ─── Percentile scorecards (issue #132) ───────────────────────────────────────
 // Outcome-row → rolling 7/30/90-day scorecards with p50/p95 settlement latency.
 // ─── Domain types ─────────────────────────────────────────────────────────────
+
+/**
+ * Maps raw `outcome_log` rows (as returned by ReputationStore.query) into the
+ * flat OutcomeRow shape buildScorecards/aggregate operate on. Shared by the
+ * per-anchor detail page and the leaderboard route so both compute scores the
+ * same way from the same source of truth.
+ */
+export function mapOutcomeRows(rows: OutcomeLogRow[]): OutcomeRow[] {
+  return rows.map((row) => ({
+    intentHash: row.intentHash,
+    anchorId: row.anchorId,
+    filled: row.outcome === 'completed',
+    settleMs: row.settleSeconds !== null ? row.settleSeconds * 1000 : null,
+    slippage:
+      row.deliveredRate !== null
+        ? Math.max(0, 1 - Number.parseFloat(row.deliveredRate) / Number.parseFloat(row.quotedRate))
+        : null,
+    recordedAt: new Date(row.createdAt).getTime(),
+  }));
+}
 
 /**
  * A single outcome row written to the reputation log after a transaction
