@@ -47,24 +47,48 @@ export function RateTable({
     );
   }
 
+  const [sourceCurrency, destCurrency] = (rates?.corridorId ?? '').split('-');
+  const anchorCount =
+    (rates?.rates.length ?? 0) + anchorErrors.length + (rates?.pending?.length ?? 0);
+  const captionText =
+    sourceCurrency && destCurrency
+      ? `${sourceCurrency.toUpperCase()} to ${destCurrency.toUpperCase()} off-ramp rates — ${anchorCount} anchor${anchorCount === 1 ? '' : 's'}`
+      : 'Off-ramp rates';
+
   return (
     <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
       <table className="w-full text-sm">
+        <caption className="sr-only">{captionText}</caption>
         <thead>
           <tr className="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50">
-            <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400">
+            <th
+              scope="col"
+              className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400"
+            >
               Anchor
             </th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">
+            <th
+              scope="col"
+              className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+            >
               Fee
             </th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">
+            <th
+              scope="col"
+              className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+            >
               Rate
             </th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">
+            <th
+              scope="col"
+              className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+            >
               You Receive
             </th>
-            <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400">
+            <th
+              scope="col"
+              className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+            >
               Action
             </th>
           </tr>
