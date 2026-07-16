@@ -134,7 +134,7 @@ export function RateTable({
                   key={rate.anchorId}
                   className={
                     isBest
-                      ? 'border-t border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20'
+                      ? 'border-t border-t-blue-200 border-l-[3px] border-l-green-500 bg-blue-50/50 dark:border-t-blue-900 dark:border-l-green-400 dark:bg-blue-950/20'
                       : 'border-t border-gray-200 dark:border-gray-700'
                   }
                 >
