@@ -19,6 +19,7 @@ import { StatusTracker } from '@/components/offramp/StatusTracker';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
 import { useWallet } from '@/contexts/WalletContext';
 import { useWithdrawStatus } from '@/hooks/useWithdrawStatus';
+import { useWalletBalance } from '@/hooks/useWalletBalance';
 import { VISIBLE_CORRIDORS } from '@/constants/anchors';
 import type { AnchorRate } from '@/types';
 
@@ -69,6 +70,7 @@ function OfframpContent() {
     corridorId,
     amount
   );
+  const { balance, isLoading: isBalanceLoading } = useWalletBalance(publicKey);
   const withdrawStatus = useWithdrawStatus(
     trackingTransferServer,
     trackingTransactionId,
@@ -144,7 +146,12 @@ function OfframpContent() {
 
       <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50 sm:grid-cols-2">
         <CorridorSelector value={corridorId} onChange={setCorridorId} />
-        <AmountInput value={amount} onChange={setAmount} />
+        <AmountInput
+          value={amount}
+          onChange={setAmount}
+          balance={balance}
+          isBalanceLoading={isBalanceLoading}
+        />
       </div>
 
       {!isConnected && (

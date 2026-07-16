@@ -30,6 +30,27 @@ describe('AmountInput', () => {
     render(<AmountInput value="100" onChange={vi.fn()} />);
     expect(screen.getByText(/Enter the amount of USDC/)).toBeInTheDocument();
   });
+
+  it('renders the wallet balance when provided', () => {
+    render(<AmountInput value="100" onChange={vi.fn()} balance={243.5} />);
+    expect(screen.getByText('Balance: 243.5 USDC')).toBeInTheDocument();
+  });
+
+  it('does not render a balance line while it is loading', () => {
+    render(<AmountInput value="100" onChange={vi.fn()} balance={243.5} isBalanceLoading />);
+    expect(screen.queryByText(/Balance:/)).not.toBeInTheDocument();
+  });
+
+  it('shows "Insufficient balance" when the amount exceeds the wallet balance', () => {
+    render(<AmountInput value="500" onChange={vi.fn()} balance={100} />);
+    expect(screen.getByText('Insufficient balance')).toBeInTheDocument();
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+  });
+
+  it('does not flag insufficient balance when the amount is within it', () => {
+    render(<AmountInput value="50" onChange={vi.fn()} balance={100} />);
+    expect(screen.queryByText('Insufficient balance')).not.toBeInTheDocument();
+  });
 });
 
 describe('CorridorSelector', () => {

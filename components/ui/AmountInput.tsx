@@ -28,12 +28,25 @@ interface AmountInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  /** Connected wallet's USDC balance (null = no trustline / not connected). */
+  balance?: number | null;
+  isBalanceLoading?: boolean;
 }
 
-export function AmountInput({ value, onChange, disabled }: AmountInputProps) {
+export function AmountInput({
+  value,
+  onChange,
+  disabled,
+  balance,
+  isBalanceLoading,
+}: AmountInputProps) {
   const [raw, setRaw] = useState(value);
   const [error, setError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const numericRaw = Number(raw);
+  const insufficient =
+    balance != null && Number.isFinite(numericRaw) && numericRaw > 0 && numericRaw > balance;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -95,10 +108,12 @@ export function AmountInput({ value, onChange, disabled }: AmountInputProps) {
           value={raw}
           onChange={handleChange}
           disabled={disabled}
-          aria-invalid={error !== null}
-          aria-describedby={error ? 'amount-error' : 'amount-hint'}
+          aria-invalid={error !== null || insufficient}
+          aria-describedby={
+            error ? 'amount-error' : insufficient ? 'amount-insufficient' : 'amount-hint'
+          }
           className={`w-full rounded-lg border px-3 py-2.5 pr-16 text-sm text-gray-900 focus:outline-none focus:ring-2 disabled:opacity-50 dark:text-white ${
-            error
+            error || insufficient
               ? 'border-red-400 bg-red-50 focus:border-red-500 focus:ring-red-500/20 dark:border-red-700 dark:bg-red-950/20'
               : 'border-gray-300 bg-white focus:border-blue-500 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800'
           }`}
@@ -107,6 +122,11 @@ export function AmountInput({ value, onChange, disabled }: AmountInputProps) {
           USDC
         </span>
       </div>
+      {!isBalanceLoading && balance != null && (
+        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Balance: {balance.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
+        </p>
+      )}
       <div className="mt-2 flex gap-2">
         {SUGGESTED_AMOUNTS.map((amount) => (
           <button
@@ -123,6 +143,10 @@ export function AmountInput({ value, onChange, disabled }: AmountInputProps) {
       {error ? (
         <p id="amount-error" role="alert" className="mt-1 text-xs text-red-500">
           {error}
+        </p>
+      ) : insufficient ? (
+        <p id="amount-insufficient" role="alert" className="mt-1 text-xs text-red-500">
+          Insufficient balance
         </p>
       ) : (
         <p id="amount-hint" className="mt-1 text-xs text-gray-500 dark:text-gray-400">
