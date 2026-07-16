@@ -204,6 +204,30 @@ describe('StatusTracker', () => {
     expect(screen.queryByText(/usually ~/)).not.toBeInTheDocument();
   });
 
+  it('shows a "still waiting" counter after 5 poll attempts', () => {
+    render(<StatusTracker {...BASE_PROPS} status="pending_anchor" attemptCount={5} />);
+    expect(screen.getByText('(checked 5 times, still waiting...)')).toBeInTheDocument();
+  });
+
+  it('does not show the counter below 5 attempts', () => {
+    render(<StatusTracker {...BASE_PROPS} status="pending_anchor" attemptCount={4} />);
+    expect(screen.queryByText(/still waiting/)).not.toBeInTheDocument();
+  });
+
+  it('escalates to the slow-anchor message at 20 attempts, replacing the counter', () => {
+    render(<StatusTracker {...BASE_PROPS} status="pending_anchor" attemptCount={20} />);
+    expect(
+      screen.getByText('This is taking longer than usual. Anchor may be experiencing delays.')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/still waiting/)).not.toBeInTheDocument();
+  });
+
+  it('does not show the poll counter for a terminal status', () => {
+    render(<StatusTracker {...BASE_PROPS} status="completed" attemptCount={30} />);
+    expect(screen.queryByText(/still waiting/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/taking longer than usual/)).not.toBeInTheDocument();
+  });
+
   it('shows no terminal-error message for a non-error status', () => {
     render(<StatusTracker {...BASE_PROPS} status="completed" />);
     expect(screen.queryByText(/anchor reported an error/i)).not.toBeInTheDocument();

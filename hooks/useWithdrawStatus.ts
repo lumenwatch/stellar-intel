@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { TERMINAL_STATES, getSep24Transaction } from '@/lib/stellar/sep24';
 import type { Sep24Transaction, WithdrawStatusValue } from '@/types';
@@ -55,6 +55,8 @@ export interface UseWithdrawStatusResult {
   updatedAt: Date | undefined;
   isLoading: boolean;
   error: string | undefined;
+  /** Number of successful polls so far for the current transactionId. Resets to 0 on a new key. */
+  attemptCount: number;
 }
 
 /**
@@ -73,6 +75,7 @@ export function useWithdrawStatus(
   const abortRef = useRef<AbortController | null>(null);
   const appendedRef = useRef(false);
   const startMsRef = useRef(Date.now());
+  const [attemptCount, setAttemptCount] = useState(0);
 
   const key =
     transferServer && transactionId && jwt
@@ -85,6 +88,7 @@ export function useWithdrawStatus(
     abortRef.current = new AbortController();
     appendedRef.current = false;
     startMsRef.current = Date.now();
+    setAttemptCount(0);
     return () => {
       abortRef.current?.abort();
       abortRef.current = null;
@@ -102,6 +106,7 @@ export function useWithdrawStatus(
       return TERMINAL_STATES.has(latestData.status) ? 0 : pollIntervalMsRef.current;
     },
     onSuccess(data) {
+      setAttemptCount((c) => c + 1);
       if (lastStatusRef.current !== data.status) {
         lastStatusRef.current = data.status;
         pollIntervalMsRef.current = WITHDRAW_POLL_INITIAL_MS;
@@ -152,5 +157,6 @@ export function useWithdrawStatus(
     updatedAt: data?.updatedAt,
     isLoading,
     error: error?.message,
+    attemptCount,
   };
 }

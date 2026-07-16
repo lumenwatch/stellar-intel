@@ -30,6 +30,8 @@ interface StatusTrackerProps {
   refunds?: Sep24Transaction['refunds'];
   isLoading: boolean;
   error: string | undefined;
+  /** Successful poll count for the current transaction; drives the "still checking" counter. */
+  attemptCount?: number;
   /** Anchor home domain for SEP-1 support contact lookup. */
   anchorHomeDomain?: string;
   onRetryAnchor?: () => void;
@@ -102,6 +104,7 @@ export function StatusTracker({
   refunds,
   isLoading,
   error,
+  attemptCount = 0,
   anchorHomeDomain,
   onDisputeOpen,
   onAdjust,
@@ -211,6 +214,17 @@ export function StatusTracker({
               (usually {statusTimeEstimate(status)})
             </span>
           )}
+        </p>
+      )}
+
+      {!isTerminal && attemptCount >= 20 && (
+        <p className="mb-4 text-xs text-amber-600 dark:text-amber-400">
+          This is taking longer than usual. Anchor may be experiencing delays.
+        </p>
+      )}
+      {!isTerminal && attemptCount >= 5 && attemptCount < 20 && (
+        <p className="mb-4 text-xs text-gray-400 dark:text-gray-500">
+          (checked {attemptCount} times, still waiting...)
         </p>
       )}
 

@@ -227,6 +227,7 @@ function OfframpContent() {
           refunds={withdrawStatus.refunds}
           isLoading={withdrawStatus.isLoading}
           error={withdrawStatus.error}
+          attemptCount={withdrawStatus.attemptCount}
           onAdjust={handleOffRampAnother}
         />
       )}

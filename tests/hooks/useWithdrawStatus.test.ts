@@ -73,4 +73,20 @@ describe('useWithdrawStatus', () => {
     });
     await waitFor(() => expect(result.current.status).toBe('error'));
   });
+
+  it('increments attemptCount on each successful poll', async () => {
+    mockFetch('pending_external');
+    const { result } = renderHook(() => useWithdrawStatus(TRANSFER_SERVER, TXN_ID, JWT), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.attemptCount).toBe(1));
+  });
+
+  it('is 0 when polling is disabled', () => {
+    vi.stubGlobal('fetch', vi.fn());
+    const { result } = renderHook(() => useWithdrawStatus(TRANSFER_SERVER, null, JWT), {
+      wrapper,
+    });
+    expect(result.current.attemptCount).toBe(0);
+  });
 });
