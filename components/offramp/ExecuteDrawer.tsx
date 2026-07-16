@@ -115,6 +115,59 @@ function ExecuteDrawerContent({
 
   const isOpen = rate !== null;
 
+  // Focus trap — keeps Tab/Shift+Tab cycling within the open dialog (or the
+  // confirmation dialog on top of it, when shown) and restores focus to
+  // whatever triggered the drawer once it's fully closed.
+  const drawerRef = useRef<HTMLDivElement>(null);
+  const confirmDialogRef = useRef<HTMLDivElement>(null);
+  const previouslyFocusedRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    return () => {
+      previouslyFocusedRef.current?.focus();
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const container = showConfirmDialog ? confirmDialogRef.current : drawerRef.current;
+
+    const getFocusable = () =>
+      container
+        ? Array.from(
+            container.querySelectorAll<HTMLElement>(
+              'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            )
+          )
+        : [];
+
+    getFocusable()[0]?.focus();
+
+    const handleTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) return;
+
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      const active = document.activeElement;
+
+      if (event.shiftKey && active === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleTab);
+    return () => window.removeEventListener('keydown', handleTab);
+  }, [isOpen, showConfirmDialog]);
+
   // Handle escape key — close immediately when it's safe to do so (idle/done/
   // error), otherwise prompt confirmation since a flow is in progress.
   useEffect(() => {
@@ -348,6 +401,7 @@ function ExecuteDrawerContent({
 
       {/* Drawer */}
       <div
+        ref={drawerRef}
         role="dialog"
         aria-modal="true"
         aria-label="Execute off-ramp"
@@ -515,7 +569,13 @@ function ExecuteDrawerContent({
       {showConfirmDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="fixed inset-0 bg-black/50" onClick={handleCancelClose} />
-          <div className="relative z-10 mx-4 max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
+          <div
+            ref={confirmDialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Cancel off-ramp?"
+            className="relative z-10 mx-4 max-w-sm rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800"
+          >
             <h3 className="mb-2 text-lg font-semibold text-gray-900 dark:text-white">
               Cancel Off-ramp?
             </h3>
