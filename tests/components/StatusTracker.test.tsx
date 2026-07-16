@@ -144,4 +144,32 @@ describe('StatusTracker', () => {
     expect(link).toHaveAttribute('href', 'mailto:support@cowrie.exchange');
     vi.useRealTimers();
   }, 15_000);
+
+  it('shows a distinct message for the error status, including the transaction id', () => {
+    render(<StatusTracker {...BASE_PROPS} status="error" />);
+    expect(
+      screen.getByText(
+        (_, node) =>
+          node?.textContent ===
+          'The anchor reported an error. Your USDC was not settled. Contact anchor support with transaction ID txn-abc-123.'
+      )
+    ).toBeInTheDocument();
+  });
+
+  it('shows a distinct message for the refunded status', () => {
+    render(<StatusTracker {...BASE_PROPS} status="refunded" />);
+    expect(screen.getByText(/anchor refunded your USDC/i)).toBeInTheDocument();
+  });
+
+  it('shows a distinct message for the expired status', () => {
+    render(<StatusTracker {...BASE_PROPS} status="expired" />);
+    expect(screen.getByText(/expired before settlement/i)).toBeInTheDocument();
+  });
+
+  it('shows no terminal-error message for a non-error status', () => {
+    render(<StatusTracker {...BASE_PROPS} status="completed" />);
+    expect(screen.queryByText(/anchor reported an error/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/anchor refunded your USDC/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/expired before settlement/i)).not.toBeInTheDocument();
+  });
 });

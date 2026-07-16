@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { WithdrawStatusValue, Sep24Transaction } from '@/types';
 import { formatDeliveredAmount } from '@/lib/format';
 import { resolveAnchorSupportHref, resolveToml } from '@/lib/stellar/sep1';
+import { terminalErrorMessage } from '@/lib/stellar/status-messages';
 import { Timeline } from './Timeline';
 import { STELLAR_EXPERT_URL } from '@/constants';
 import { CopyButton } from '@/components/ui/CopyButton';
@@ -102,6 +103,7 @@ export function StatusTracker({
   const isTerminal = status ? TERMINAL.includes(status) : false;
   const isCompleted = status === 'completed';
   const canDispute = isTerminal && status != null && DISPUTABLE.includes(status);
+  const terminalMessage = status ? terminalErrorMessage(status, transactionId) : null;
 
   const [anchorSupportUrl, setAnchorSupportUrl] = useState<string | null>(null);
   const pendingAnchorSinceRef = useRef<number | null>(null);
@@ -197,6 +199,18 @@ export function StatusTracker({
       {error && (
         <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600 dark:bg-red-950/30 dark:text-red-400">
           {error}
+        </p>
+      )}
+
+      {terminalMessage && (
+        <p
+          className={`mb-4 rounded-lg px-3 py-2 text-xs ${
+            status === 'refunded'
+              ? 'bg-yellow-50 text-yellow-800 dark:bg-yellow-950/30 dark:text-yellow-300'
+              : 'bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400'
+          }`}
+        >
+          {terminalMessage}
         </p>
       )}
 
