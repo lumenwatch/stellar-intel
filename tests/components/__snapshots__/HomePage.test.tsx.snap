@@ -4,6 +4,11 @@ exports[`HomePage > matches snapshot 1`] = `
 <div
   class="space-y-8 sm:space-y-16"
 >
+  <script
+    type="application/ld+json"
+  >
+    {"@context":"https://schema.org","@type":"FinancialProduct","name":"Stellar Intel","description":"Compare off-ramp rates, on-ramp fees, yield protocols, and swap routes across the Stellar network in real time.","url":"https://stellar-intel.vercel.app","applicationCategory":"FinanceApplication"}
+  </script>
   <section
     class="transition-all duration-700 ease-out opacity-0 translate-y-8 motion-reduce:transition-none motion-reduce:transform-none motion-reduce:opacity-100"
     style="transition-delay: 0ms;"

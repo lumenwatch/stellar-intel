@@ -65,6 +65,17 @@ describe('HomePage', () => {
     expect((link as HTMLAnchorElement).href).toContain('/offramp');
   });
 
+  it('renders valid FinancialProduct JSON-LD structured data', () => {
+    const { container } = render(<HomePage />);
+    const script = container.querySelector('script[type="application/ld+json"]');
+    expect(script).not.toBeNull();
+    const data = JSON.parse(script!.textContent ?? '{}');
+    expect(data['@context']).toBe('https://schema.org');
+    expect(data['@type']).toBe('FinancialProduct');
+    expect(data.name).toBe('Stellar Intel');
+    expect(typeof data.url).toBe('string');
+  });
+
   it('matches snapshot', () => {
     const { container } = render(<HomePage />);
     expect(container.firstChild).toMatchSnapshot();

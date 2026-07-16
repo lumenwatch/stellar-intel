@@ -13,6 +13,18 @@ import { FeatureGrid } from '@/components/landing/FeatureGrid';
 import { LandingSection } from '@/components/landing/LandingSection';
 import { registryStats } from '@/constants';
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://stellar-intel.vercel.app';
+
+const STRUCTURED_DATA = {
+  '@context': 'https://schema.org',
+  '@type': 'FinancialProduct',
+  name: 'Stellar Intel',
+  description:
+    'Compare off-ramp rates, on-ramp fees, yield protocols, and swap routes across the Stellar network in real time.',
+  url: SITE_URL,
+  applicationCategory: 'FinanceApplication',
+};
+
 const HOW_IT_WORKS_STEPS = [
   {
     step: '01',
@@ -35,6 +47,13 @@ export default function HomePage() {
   const stats = registryStats();
   return (
     <div className="space-y-8 sm:space-y-16">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(STRUCTURED_DATA).replace(/</g, '\\u003c'),
+        }}
+      />
       {/* Hero */}
       <LandingSection delay={0}>
         <Hero />
