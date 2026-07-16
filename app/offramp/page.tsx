@@ -1,5 +1,6 @@
 'use client';
 import { Suspense, useState, useCallback, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { TERMINAL_STATES } from '@/lib/stellar/sep24';
 import {
@@ -14,13 +15,19 @@ import { WalletButton } from '@/components/ui/WalletButton';
 import { AmountInput } from '@/components/ui/AmountInput';
 import { CorridorSelector } from '@/components/ui/CorridorSelector';
 import { RateTable } from '@/components/offramp/RateTable';
-import { ExecuteDrawer } from '@/components/offramp/ExecuteDrawer';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
 import { useWallet } from '@/contexts/WalletContext';
 import { useWithdrawStatus } from '@/hooks/useWithdrawStatus';
 import { VISIBLE_CORRIDORS } from '@/constants/anchors';
 import type { AnchorRate } from '@/types';
+
+// Not needed until the user picks a rate to execute — split into its own
+// chunk so it doesn't pad the initial /offramp bundle.
+const ExecuteDrawer = dynamic(
+  () => import('@/components/offramp/ExecuteDrawer').then((mod) => mod.ExecuteDrawer),
+  { ssr: false }
+);
 
 const DEFAULT_CORRIDOR_ID = 'usdc-ngn';
 const DEFAULT_AMOUNT = '100';
