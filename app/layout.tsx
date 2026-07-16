@@ -54,8 +54,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
+                var stored = null;
                 try {
-                  var stored = localStorage.getItem('theme');
+                  stored = localStorage.getItem('theme');
+                } catch(e) {}
+                try {
                   var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                   if (stored === 'dark' || (!stored && prefersDark)) {
                     document.documentElement.classList.add('dark');
