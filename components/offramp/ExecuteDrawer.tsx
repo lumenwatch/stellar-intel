@@ -115,17 +115,21 @@ function ExecuteDrawerContent({
 
   const isOpen = rate !== null;
 
-  // Handle escape key — prompt confirmation when a flow is in progress.
+  // Handle escape key — close immediately when it's safe to do so (idle/done/
+  // error), otherwise prompt confirmation since a flow is in progress.
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && isOpen && !['idle', 'done', 'error'].includes(step)) {
+      if (event.key !== 'Escape' || !isOpen) return;
+      if (['idle', 'done', 'error'].includes(step)) {
+        onClose();
+      } else {
         setShowConfirmDialog(true);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, step]);
+  }, [isOpen, step, onClose]);
 
   // Lock background scroll while the drawer is open. Pinning <body> with
   // position:fixed (rather than overflow:hidden alone) is what makes the lock
