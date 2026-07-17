@@ -12,6 +12,7 @@ import {
 import { Timeline } from './Timeline';
 import { STELLAR_EXPERT_URL } from '@/constants';
 import { CopyButton } from '@/components/ui/CopyButton';
+import { useShare } from '@/hooks/useShare';
 
 const PENDING_ANCHOR_STALL_MS = 10 * 60 * 1000;
 
@@ -113,6 +114,7 @@ export function StatusTracker({
   const isCompleted = status === 'completed';
   const canDispute = isTerminal && status != null && DISPUTABLE.includes(status);
   const terminalMessage = status ? terminalErrorMessage(status, transactionId) : null;
+  const { share, copied: shareCopied } = useShare();
 
   const [anchorSupportUrl, setAnchorSupportUrl] = useState<string | null>(null);
   const pendingAnchorSinceRef = useRef<number | null>(null);
@@ -392,6 +394,19 @@ export function StatusTracker({
           >
             View transaction history
           </Link>
+          {amountIn && stellarTransactionId && isValidStellarTxId(stellarTransactionId) && (
+            <button
+              onClick={() =>
+                share({
+                  text: `I just off-ramped ${amountIn} USDC → ${currencyCode} via Stellar Intel.`,
+                  url: `${STELLAR_EXPERT_URL}/tx/${stellarTransactionId}`,
+                })
+              }
+              className="text-xs font-medium text-gray-500 hover:underline dark:text-gray-400"
+            >
+              {shareCopied ? 'Copied!' : 'Share'}
+            </button>
+          )}
         </div>
       )}
 

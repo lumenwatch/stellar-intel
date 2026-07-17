@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen, waitFor } from '@testing-library/react';
+import { act, render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
 
 vi.mock('@/lib/stellar/sep1', async (importOriginal) => {
@@ -48,6 +48,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe('StatusTracker', () => {
@@ -178,6 +179,31 @@ describe('StatusTracker', () => {
     const adjustButton = screen.getByRole('button', { name: 'Off-ramp another amount' });
     adjustButton.click();
     expect(onAdjust).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows a Share button when completed with a valid stellar tx id, copying on click', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    vi.stubGlobal('navigator', { clipboard: { writeText } });
+
+    render(
+      <StatusTracker
+        {...BASE_PROPS}
+        status="completed"
+        amountIn="100"
+        stellarTransactionId="aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899"
+      />
+    );
+
+    const shareButton = screen.getByRole('button', { name: 'Share' });
+    fireEvent.click(shareButton);
+
+    await waitFor(() => expect(writeText).toHaveBeenCalled());
+    expect(writeText.mock.calls[0]![0]).toContain('100 USDC');
+  });
+
+  it('does not show a Share button without a valid stellar tx id', () => {
+    render(<StatusTracker {...BASE_PROPS} status="completed" amountIn="100" />);
+    expect(screen.queryByRole('button', { name: 'Share' })).not.toBeInTheDocument();
   });
 
   it('does not show "Off-ramp another amount" without an onAdjust handler', () => {
