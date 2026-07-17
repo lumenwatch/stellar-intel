@@ -48,6 +48,18 @@ export function RateTable({
 
   const sortedRates = useMemo(() => sortRates(rates?.rates ?? [], sort), [rates?.rates, sort]);
 
+  // Savings vs. the worst available rate for the same amount — only
+  // meaningful (and only shown) when there are at least two comparable rates.
+  const savingsVsWorst = useMemo(() => {
+    const available = (rates?.rates ?? []).filter(
+      (r) => r.source !== 'unavailable' && r.totalReceived !== null
+    );
+    if (available.length < 2) return null;
+
+    const values = available.map((r) => r.totalReceived!);
+    return Math.max(...values) - Math.min(...values);
+  }, [rates?.rates]);
+
   const [announcement, setAnnouncement] = useState('');
   const lastAnnouncedKeyRef = useRef<string | null>(null);
 
@@ -221,6 +233,11 @@ export function RateTable({
                           <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                             Best Rate
                           </span>
+                          {savingsVsWorst !== null && savingsVsWorst > 0 && (
+                            <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                              Save {formatCurrency(savingsVsWorst, currency)} vs others
+                            </span>
+                          )}
                           {rate.totalReceived !== null && (
                             <CopyButton
                               text={`Best USDC→${currency} rate: ${formatCurrency(rate.totalReceived, currency)} via ${rate.anchorName}. Checked ${new Date().toLocaleString()} on ${SITE_URL}/offramp?corridor=${rate.corridorId}`}

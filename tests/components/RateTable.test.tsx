@@ -66,6 +66,22 @@ describe('RateTable', () => {
     expect(screen.getAllByRole('button', { name: 'Copy' })).toHaveLength(1);
   });
 
+  it('shows a savings callout on the best row when there are 2+ comparable rates', () => {
+    render(
+      <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
+    );
+    // cowrie 154840 vs flutterwave 153260 -> save NGN 1,580
+    expect(screen.getByText(/Save.*vs others/)).toBeInTheDocument();
+  });
+
+  it('hides the savings callout when only one rate is available', () => {
+    const singleRate: RateComparison = { ...mockRates, rates: [makeRate('cowrie', 154840)] };
+    render(
+      <RateTable rates={singleRate} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
+    );
+    expect(screen.queryByText(/Save.*vs others/)).not.toBeInTheDocument();
+  });
+
   it('anchor name links to its scorecard page', () => {
     render(
       <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
