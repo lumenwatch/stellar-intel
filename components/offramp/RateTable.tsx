@@ -1,5 +1,5 @@
 'use client';
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { Fragment, useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { formatCurrency, formatRate } from '@/lib/utils';
 import { nextSortState, sortRates, type SortState } from '@/lib/sort';
@@ -9,6 +9,7 @@ import { QuotePill } from '@/components/ui/QuotePill';
 import { AnchorLogo } from '@/components/ui/AnchorLogo';
 import { CopyButton } from '@/components/ui/CopyButton';
 import { SortToggle } from './SortToggle';
+import { RateRowDetail } from './RateRowDetail';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://stellar-intel.vercel.app';
 
@@ -37,6 +38,7 @@ export function RateTable({
 }: RateTableProps) {
   const [expiredAnchorIds, setExpiredAnchorIds] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<SortState | null>(null);
+  const [expandedAnchorId, setExpandedAnchorId] = useState<string | null>(null);
 
   const handleExpire = useCallback((anchorId: string) => {
     setExpiredAnchorIds((prev) => {
@@ -209,72 +211,94 @@ export function RateTable({
               const isUnavailable = rate.source === 'unavailable' || isExpired;
               const isBest = rate.anchorId === rates?.bestRateId && !isUnavailable;
               const currency = rate.corridorId.split('-')[1]?.toUpperCase() ?? '';
+              const isExpanded = expandedAnchorId === rate.anchorId;
 
               return (
-                <tr
-                  key={rate.anchorId}
-                  className={
-                    isBest
-                      ? 'border-t border-t-blue-200 border-l-[3px] border-l-green-500 bg-blue-50/50 dark:border-t-blue-900 dark:border-l-green-400 dark:bg-blue-950/20'
-                      : 'border-t border-gray-200 dark:border-gray-700'
-                  }
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <AnchorLogo anchorId={rate.anchorId} anchorName={rate.anchorName} />
-                      <Link
-                        href={`/anchors/${rate.anchorId}`}
-                        className="font-medium text-gray-900 hover:underline dark:text-white"
-                      >
-                        {rate.anchorName}
-                      </Link>
-                      {isBest && (
-                        <>
-                          <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                            Best Rate
-                          </span>
-                          {savingsVsWorst !== null && savingsVsWorst > 0 && (
-                            <span className="text-xs font-medium text-green-600 dark:text-green-400">
-                              Save {formatCurrency(savingsVsWorst, currency)} vs others
+                <Fragment key={rate.anchorId}>
+                  <tr
+                    className={
+                      isBest
+                        ? 'border-t border-t-blue-200 border-l-[3px] border-l-green-500 bg-blue-50/50 dark:border-t-blue-900 dark:border-l-green-400 dark:bg-blue-950/20'
+                        : 'border-t border-gray-200 dark:border-gray-700'
+                    }
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <AnchorLogo anchorId={rate.anchorId} anchorName={rate.anchorName} />
+                        <Link
+                          href={`/anchors/${rate.anchorId}`}
+                          className="font-medium text-gray-900 hover:underline dark:text-white"
+                        >
+                          {rate.anchorName}
+                        </Link>
+                        {isBest && (
+                          <>
+                            <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                              Best Rate
                             </span>
-                          )}
-                          {rate.totalReceived !== null && (
-                            <CopyButton
-                              text={`Best USDC→${currency} rate: ${formatCurrency(rate.totalReceived, currency)} via ${rate.anchorName}. Checked ${new Date().toLocaleString()} on ${SITE_URL}/offramp?corridor=${rate.corridorId}`}
-                            />
-                          )}
-                        </>
-                      )}
-                      <QuotePill
-                        source={isUnavailable ? 'unavailable' : rate.source}
-                        expiresAt={rate.expiresAt || undefined}
-                        onExpire={() => handleExpire(rate.anchorId)}
-                      />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
-                    {rate.fee !== null ? formatCurrency(rate.fee, 'USD') : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
-                    {rate.exchangeRate !== null && rate.exchangeRate > 0
-                      ? formatRate(rate.exchangeRate, 'USDC', currency)
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
-                    {rate.totalReceived !== null
-                      ? formatCurrency(rate.totalReceived, currency)
-                      : '—'}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      onClick={() => onSelectAnchor(rate)}
-                      disabled={isUnavailable || executeDisabled}
-                      className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Off-ramp
-                    </button>
-                  </td>
-                </tr>
+                            {savingsVsWorst !== null && savingsVsWorst > 0 && (
+                              <span className="text-xs font-medium text-green-600 dark:text-green-400">
+                                Save {formatCurrency(savingsVsWorst, currency)} vs others
+                              </span>
+                            )}
+                            {rate.totalReceived !== null && (
+                              <CopyButton
+                                text={`Best USDC→${currency} rate: ${formatCurrency(rate.totalReceived, currency)} via ${rate.anchorName}. Checked ${new Date().toLocaleString()} on ${SITE_URL}/offramp?corridor=${rate.corridorId}`}
+                              />
+                            )}
+                          </>
+                        )}
+                        <QuotePill
+                          source={isUnavailable ? 'unavailable' : rate.source}
+                          expiresAt={rate.expiresAt || undefined}
+                          onExpire={() => handleExpire(rate.anchorId)}
+                        />
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                      {rate.fee !== null ? formatCurrency(rate.fee, 'USD') : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
+                      {rate.exchangeRate !== null && rate.exchangeRate > 0
+                        ? formatRate(rate.exchangeRate, 'USDC', currency)
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-white">
+                      {rate.totalReceived !== null
+                        ? formatCurrency(rate.totalReceived, currency)
+                        : '—'}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <button
+                          onClick={() => setExpandedAnchorId(isExpanded ? null : rate.anchorId)}
+                          aria-label={isExpanded ? 'Hide details' : 'Show details'}
+                          aria-expanded={isExpanded}
+                          className="rounded p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                        >
+                          <svg
+                            className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2}
+                            aria-hidden="true"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => onSelectAnchor(rate)}
+                          disabled={isUnavailable || executeDisabled}
+                          className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          Off-ramp
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {isExpanded && <RateRowDetail rate={rate} currency={currency} colSpan={5} />}
+                </Fragment>
               );
             })}
 

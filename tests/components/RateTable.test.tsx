@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { RateTable } from '@/components/offramp/RateTable';
 import type { RateComparison, AnchorRate } from '@/types';
 
@@ -80,6 +80,26 @@ describe('RateTable', () => {
       <RateTable rates={singleRate} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
     );
     expect(screen.queryByText(/Save.*vs others/)).not.toBeInTheDocument();
+  });
+
+  it('expands and collapses the row detail panel, one row at a time', () => {
+    render(
+      <RateTable rates={mockRates} isLoading={false} error={undefined} onSelectAnchor={vi.fn()} />
+    );
+
+    expect(screen.queryByText('Quote type')).not.toBeInTheDocument();
+
+    const [cowrieRow, flutterwaveRow] = screen.getAllByRole('row').slice(1);
+
+    fireEvent.click(within(cowrieRow!).getByRole('button', { name: 'Show details' }));
+    expect(screen.getAllByText('Quote type')).toHaveLength(1);
+
+    // Expanding a different row's detail replaces the first, not adds to it.
+    fireEvent.click(within(flutterwaveRow!).getByRole('button', { name: 'Show details' }));
+    expect(screen.getAllByText('Quote type')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Hide details' }));
+    expect(screen.queryByText('Quote type')).not.toBeInTheDocument();
   });
 
   it('anchor name links to its scorecard page', () => {
