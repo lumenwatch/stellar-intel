@@ -3,7 +3,7 @@ import useSWR from 'swr';
 import { measureClient } from '@/lib/metrics';
 import type { AnchorRate, AnchorRateError, RateComparison } from '@/types';
 
-const RATES_REFRESH_INTERVAL_MS = 30_000;
+export const RATES_REFRESH_INTERVAL_MS = 30_000;
 
 /**
  * How long a fetched quote is considered valid before a refresh is needed.
@@ -50,6 +50,8 @@ export interface UseAnchorRatesResult {
   pauseRefresh: () => void;
   resumeRefresh: () => void;
   anchorErrors: AnchorRateError[];
+  /** Timestamp of the last successful SWR revalidation; null before the first fetch resolves. */
+  lastFetchedAt: number | null;
 }
 
 export function useAnchorRates(
@@ -58,6 +60,7 @@ export function useAnchorRates(
   { revalidateOnFocus = true }: { revalidateOnFocus?: boolean } = {}
 ): UseAnchorRatesResult {
   const [refreshInflight, setRefreshInflight] = useState(false);
+  const [lastFetchedAt, setLastFetchedAt] = useState<number | null>(null);
   const isDocumentVisible = useDocumentVisible();
   const wasDocumentVisible = useRef(isDocumentVisible);
   const hasRateQuery = Boolean(corridorId && amount);
@@ -90,6 +93,7 @@ export function useAnchorRates(
       refreshWhenHidden: false,
       revalidateOnFocus,
       dedupingInterval: 5_000,
+      onSuccess: () => setLastFetchedAt(Date.now()),
     }
   );
 
@@ -205,5 +209,6 @@ export function useAnchorRates(
     pauseRefresh,
     resumeRefresh,
     anchorErrors: data?.errors ?? [],
+    lastFetchedAt,
   };
 }

@@ -19,7 +19,8 @@ import { AnchorCountBadge } from '@/components/offramp/AnchorCountBadge';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
 import { DisclaimerBanner } from '@/components/offramp/DisclaimerBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
-import { useAnchorRates } from '@/hooks/useAnchorRates';
+import { useAnchorRates, RATES_REFRESH_INTERVAL_MS } from '@/hooks/useAnchorRates';
+import { useCountdown } from '@/hooks/useCountdown';
 import { useWallet } from '@/contexts/WalletContext';
 import { useWithdrawStatus } from '@/hooks/useWithdrawStatus';
 import { useWalletBalance } from '@/hooks/useWalletBalance';
@@ -69,9 +70,11 @@ function OfframpContent() {
   const [trackingAnchorHomeDomain, setTrackingAnchorHomeDomain] = useState<string | null>(null);
 
   const { isConnected, publicKey, network } = useWallet();
-  const { rates, anchorErrors, isLoading, error, mutate, refreshInflight } = useAnchorRates(
-    corridorId,
-    amount
+  const { rates, anchorErrors, isLoading, error, mutate, refreshInflight, lastFetchedAt } =
+    useAnchorRates(corridorId, amount);
+  const { secondsRemaining, elapsedSeconds, prefersReducedMotion } = useCountdown(
+    RATES_REFRESH_INTERVAL_MS,
+    lastFetchedAt
   );
   const { balance, isLoading: isBalanceLoading } = useWalletBalance(publicKey);
   const withdrawStatus = useWithdrawStatus(
@@ -232,6 +235,13 @@ function OfframpContent() {
                 (rates?.rates.length ?? 0) + anchorErrors.length + (rates?.pending?.length ?? 0)
               }
             />
+            {lastFetchedAt !== null && (
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {prefersReducedMotion
+                  ? `Last updated ${elapsedSeconds}s ago`
+                  : `Rates valid for ~${secondsRemaining}s`}
+              </span>
+            )}
           </div>
           <button
             onClick={() => mutate()}
