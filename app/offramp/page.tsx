@@ -15,6 +15,7 @@ import { WalletButton } from '@/components/ui/WalletButton';
 import { AmountInput } from '@/components/ui/AmountInput';
 import { CorridorSelector } from '@/components/ui/CorridorSelector';
 import { RateTable } from '@/components/offramp/RateTable';
+import { AnchorCountBadge } from '@/components/offramp/AnchorCountBadge';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
 import { DisclaimerBanner } from '@/components/offramp/DisclaimerBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -194,9 +195,17 @@ function OfframpContent() {
 
       <div ref={rateTableRef}>
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            Available Rates
-          </h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              Available Rates
+            </h2>
+            <AnchorCountBadge
+              responding={rates?.rates.length ?? 0}
+              total={
+                (rates?.rates.length ?? 0) + anchorErrors.length + (rates?.pending?.length ?? 0)
+              }
+            />
+          </div>
           <button
             onClick={() => mutate()}
             aria-label={refreshInflight ? 'Refreshing rates...' : 'Refresh rates'}
