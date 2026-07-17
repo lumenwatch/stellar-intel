@@ -218,8 +218,8 @@ export function RateTable({
                   <tr
                     className={
                       isBest
-                        ? 'border-t border-t-blue-200 border-l-[3px] border-l-green-500 bg-blue-50/50 dark:border-t-blue-900 dark:border-l-green-400 dark:bg-blue-950/20'
-                        : 'border-t border-gray-200 dark:border-gray-700'
+                        ? 'border-t border-t-blue-200 border-l-[3px] border-l-green-500 bg-blue-50/50 transition-[filter] duration-[120ms] ease-out hover:brightness-[0.98] dark:border-t-blue-900 dark:border-l-green-400 dark:bg-blue-950/20 dark:hover:brightness-110'
+                        : 'border-t border-gray-200 transition-colors duration-[120ms] ease-out hover:bg-black/[0.03] dark:border-gray-700 dark:hover:bg-white/5'
                     }
                   >
                     <td className="px-4 py-3">
