@@ -16,6 +16,7 @@ import { AmountInput } from '@/components/ui/AmountInput';
 import { CorridorSelector } from '@/components/ui/CorridorSelector';
 import { RateTable } from '@/components/offramp/RateTable';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
+import { DisclaimerBanner } from '@/components/offramp/DisclaimerBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
 import { useWallet } from '@/contexts/WalletContext';
@@ -172,6 +173,8 @@ function OfframpContent() {
         </div>
         <WalletButton />
       </div>
+
+      <DisclaimerBanner />
 
       <div className="grid grid-cols-1 gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50 sm:grid-cols-2">
         <CorridorSelector value={corridorId} onChange={setCorridorId} />
