@@ -42,8 +42,11 @@ export async function GET(
       failed: result.errors.length,
     });
 
+    // Listing rates aren't a locked-in quote — execution re-authenticates and
+    // re-quotes with the anchor from scratch, so a short shared cache here
+    // only affects how stale the comparison table can be, not correctness.
     return NextResponse.json(result, {
-      headers: { 'Cache-Control': 'no-store' },
+      headers: { 'Cache-Control': 'public, max-age=15, stale-while-revalidate=60' },
     });
   });
 }
