@@ -16,6 +16,7 @@ import { AmountInput } from '@/components/ui/AmountInput';
 import { CorridorSelector } from '@/components/ui/CorridorSelector';
 import { RateTable } from '@/components/offramp/RateTable';
 import { StatusTracker } from '@/components/offramp/StatusTracker';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { useAnchorRates } from '@/hooks/useAnchorRates';
 import { useWallet } from '@/contexts/WalletContext';
 import { useWithdrawStatus } from '@/hooks/useWithdrawStatus';
@@ -199,16 +200,33 @@ function OfframpContent() {
             Refresh
           </button>
         </div>
-        <RateTable
-          rates={rates}
-          anchorErrors={anchorErrors}
-          isLoading={isLoading}
-          refreshInflight={refreshInflight}
-          error={error}
-          onSelectAnchor={handleSelectAnchor}
-          executeDisabled={network !== 'PUBLIC'}
-          onRefresh={() => mutate()}
-        />
+        <ErrorBoundary
+          resetKeys={[corridorId, amount]}
+          fallback={({ resetErrorBoundary }) => (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-8 text-center dark:border-red-800/40 dark:bg-red-950/20">
+              <p className="mb-3 text-sm text-red-600 dark:text-red-400">
+                Rate table encountered an error.
+              </p>
+              <button
+                onClick={resetErrorBoundary}
+                className="text-xs font-medium text-blue-600 underline hover:text-blue-700 dark:text-blue-400"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+        >
+          <RateTable
+            rates={rates}
+            anchorErrors={anchorErrors}
+            isLoading={isLoading}
+            refreshInflight={refreshInflight}
+            error={error}
+            onSelectAnchor={handleSelectAnchor}
+            executeDisabled={network !== 'PUBLIC'}
+            onRefresh={() => mutate()}
+          />
+        </ErrorBoundary>
       </div>
 
       {trackingTransactionId && (
