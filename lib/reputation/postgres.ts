@@ -54,8 +54,11 @@ const CREATE_TABLE_SQL = `
   CREATE INDEX IF NOT EXISTS idx_probe_samples_domain_corridor ON probe_samples (domain, corridor);
 `;
 
+function asString(v: unknown): string | null {
+  return v == null ? null : String(v);
+}
+
 function fromDb(r: Record<string, unknown>): OutcomeLogRow {
-  const asString = (v: unknown): string | null => (v == null ? null : String(v));
   return {
     intentHash: String(r['intent_hash']),
     anchorId: String(r['anchor_id']),
