@@ -191,6 +191,13 @@ export class SqliteReputationStore implements ReputationStore {
     return (this.db.prepare(sql).all(params) as Array<Record<string, unknown>>).map(fromProbeDb);
   }
 
+  async compactProbes(cutoff: Date): Promise<number> {
+    const result = this.db
+      .prepare(`DELETE FROM probe_samples WHERE probedAt < @cutoff`)
+      .run({ cutoff: cutoff.toISOString() });
+    return result.changes;
+  }
+
   async close(): Promise<void> {
     this.db.close();
   }
