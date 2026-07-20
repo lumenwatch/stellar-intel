@@ -1,5 +1,11 @@
 import type { OutcomeLogRow, OutcomeStatus, ProbeLedgerRow } from '@/types/reputation';
-import type { DeliveredUpdate, DisputedUpdate, OutcomeQuery, ReputationStore } from './store';
+import type {
+  DeliveredUpdate,
+  DisputedUpdate,
+  OutcomeQuery,
+  ProbeSampleQuery,
+  ReputationStore,
+} from './store';
 
 // ─── Postgres backend (Issue #128 / #219) — production ─────────────────────────
 //
@@ -36,6 +42,8 @@ const CREATE_TABLE_SQL = `
 
   CREATE TABLE IF NOT EXISTS probe_samples (
     domain        TEXT NOT NULL,
+    kind          TEXT NOT NULL DEFAULT 'uptime',
+    corridor      TEXT,
     reachable     BOOLEAN NOT NULL,
     latency_ms    DOUBLE PRECISION NOT NULL,
     failure_type  TEXT,
@@ -43,10 +51,14 @@ const CREATE_TABLE_SQL = `
     probed_at     TIMESTAMPTZ NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_probe_samples_domain ON probe_samples (domain);
+  CREATE INDEX IF NOT EXISTS idx_probe_samples_domain_corridor ON probe_samples (domain, corridor);
 `;
 
+function asString(v: unknown): string | null {
+  return v == null ? null : String(v);
+}
+
 function fromDb(r: Record<string, unknown>): OutcomeLogRow {
-  const asString = (v: unknown): string | null => (v == null ? null : String(v));
   return {
     intentHash: String(r['intent_hash']),
     anchorId: String(r['anchor_id']),
@@ -70,13 +82,14 @@ function fromDb(r: Record<string, unknown>): OutcomeLogRow {
 }
 
 function fromProbeDb(r: Record<string, unknown>): ProbeLedgerRow {
-  const asString = (v: unknown): string | null => (v == null ? null : String(v));
   return {
     domain: String(r['domain']),
+    kind: (r['kind'] as ProbeLedgerRow['kind']) ?? 'uptime',
+    corridor: asString(r['corridor']),
     reachable: Boolean(r['reachable']),
     latencyMs: Number(r['latency_ms']),
     failureType: (r['failure_type'] as ProbeLedgerRow['failureType']) ?? null,
-    error: asString(r['error']),
+    error: (r['error'] as string) ?? null,
     probedAt: new Date(r['probed_at'] as string).toISOString(),
   };
 }
@@ -87,15 +100,7 @@ export class PostgresReputationStore implements ReputationStore {
   constructor(private readonly sql: SqlExecutor) {}
 
   private init(): Promise<void> {
-    if (!this.ready) {
-      const statements = CREATE_TABLE_SQL.split(';')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
-      this.ready = statements.reduce<Promise<void>>(
-        (chain, stmt) => chain.then(() => this.sql.query(stmt + ';').then(() => undefined)),
-        Promise.resolve()
-      );
-    }
+    if (!this.ready) this.ready = this.sql.query(CREATE_TABLE_SQL).then(() => undefined);
     return this.ready;
   }
 
@@ -184,23 +189,51 @@ export class PostgresReputationStore implements ReputationStore {
   async recordProbeSample(row: ProbeLedgerRow): Promise<void> {
     await this.init();
     await this.sql.query(
-      `INSERT INTO probe_samples (domain, reachable, latency_ms, failure_type, error, probed_at)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [row.domain, row.reachable ? 1 : 0, row.latencyMs, row.failureType, row.error, row.probedAt]
+      `INSERT INTO probe_samples (domain, kind, corridor, reachable, latency_ms, failure_type, error, probed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        row.domain,
+        row.kind,
+        row.corridor,
+        row.reachable ? 1 : 0,
+        row.latencyMs,
+        row.failureType,
+        row.error,
+        row.probedAt,
+      ]
     );
   }
 
-  async queryProbeSamples(domain?: string): Promise<ProbeLedgerRow[]> {
+  async queryProbeSamples(domain?: string, filter: ProbeSampleQuery = {}): Promise<ProbeLedgerRow[]> {
     await this.init();
+    const where: string[] = [];
+    const params: unknown[] = [];
     if (domain) {
-      const { rows } = await this.sql.query(
-        'SELECT * FROM probe_samples WHERE domain = $1 ORDER BY probed_at ASC',
-        [domain]
-      );
-      return rows.map(fromProbeDb);
+      params.push(domain);
+      where.push(`domain = $${params.length}`);
     }
-    const { rows } = await this.sql.query('SELECT * FROM probe_samples ORDER BY probed_at ASC');
+    if (filter.corridor) {
+      params.push(filter.corridor);
+      where.push(`corridor = $${params.length}`);
+    }
+    if (filter.kind) {
+      params.push(filter.kind);
+      where.push(`kind = $${params.length}`);
+    }
+    const sql = `SELECT * FROM probe_samples ${
+      where.length ? `WHERE ${where.join(' AND ')}` : ''
+    } ORDER BY probed_at ASC`;
+    const { rows } = await this.sql.query(sql, params);
     return rows.map(fromProbeDb);
+  }
+
+  async compactProbes(cutoff: Date): Promise<number> {
+    await this.init();
+    const { rows } = await this.sql.query(
+      `DELETE FROM probe_samples WHERE probed_at < $1 RETURNING domain`,
+      [cutoff.toISOString()]
+    );
+    return rows.length;
   }
 
   async close(): Promise<void> {

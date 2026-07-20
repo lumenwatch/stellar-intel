@@ -38,20 +38,29 @@ export interface OutcomeLogRow {
   oracleTxHash: string | null;
 }
 
-// ─── Uptime probe ledger (Issue #D002) ────────────────────────────────────────
+// ─── Uptime / quote-latency probe ledger (Issue #D002 / #D005) ────────────────
 //
-// Probe samples recorded into the health ledger. Each row captures one
-// SEP-1 stellar.toml reachability check for an anchor, including a
-// classified failure type so the dashboard can distinguish DNS/TLS issues
-// from plain HTTP errors or timeouts.
+// Probe samples recorded into the health ledger. An `uptime` row captures one
+// SEP-1 stellar.toml reachability check for an anchor; a `quote` row captures
+// one SEP-38 quote round-trip for an anchor+corridor, timed independently of
+// uptime so a slow-but-reachable anchor is distinguishable from a down one.
+// Both kinds carry a classified failure type so the dashboard can distinguish
+// DNS/TLS issues from plain HTTP errors or timeouts.
 
 export const PROBE_FAILURE_TYPES = ['dns', 'tls', 'http', 'timeout', 'unknown'] as const;
 export type ProbeFailureType = (typeof PROBE_FAILURE_TYPES)[number];
 
+export const PROBE_KINDS = ['uptime', 'quote'] as const;
+export type ProbeKind = (typeof PROBE_KINDS)[number];
+
 export interface ProbeLedgerRow {
   /** Anchor home domain that was probed. */
   domain: string;
-  /** True when stellar.toml resolved and returned HTTP 2xx. */
+  /** Which check this row represents: stellar.toml reachability, or a SEP-38 quote round-trip. */
+  kind: ProbeKind;
+  /** Corridor ID (e.g. 'usdc-ngn') for `quote` rows; null for `uptime` rows. */
+  corridor: string | null;
+  /** True when the probe succeeded (toml resolved, or a quote was returned). */
   reachable: boolean;
   /** Round-trip time in milliseconds (0 when unreachable). */
   latencyMs: number;
@@ -61,4 +70,12 @@ export interface ProbeLedgerRow {
   error: string | null;
   /** ISO 8601 timestamp of the probe. */
   probedAt: string;
+}
+
+/** p50/p95 latency over a rolling window of an anchor+corridor's reachable quote samples. */
+export interface LatencyPercentiles {
+  p50Ms: number;
+  p95Ms: number;
+  /** Number of reachable samples the percentiles were computed over. */
+  sampleCount: number;
 }

@@ -1,6 +1,12 @@
 import Database from 'better-sqlite3';
 import type { OutcomeLogRow, OutcomeStatus, ProbeLedgerRow } from '@/types/reputation';
-import type { DeliveredUpdate, DisputedUpdate, OutcomeQuery, ReputationStore } from './store';
+import type {
+  DeliveredUpdate,
+  DisputedUpdate,
+  OutcomeQuery,
+  ProbeSampleQuery,
+  ReputationStore,
+} from './store';
 
 // ─── SQLite backend (Issue #128 / #219) — local/dev ────────────────────────────
 
@@ -29,6 +35,8 @@ const CREATE_TABLE_SQL = `
 
   CREATE TABLE IF NOT EXISTS probe_samples (
     domain       TEXT    NOT NULL,
+    kind         TEXT    NOT NULL DEFAULT 'uptime',
+    corridor     TEXT,
     reachable    INTEGER NOT NULL,
     latencyMs    REAL    NOT NULL,
     failureType  TEXT,
@@ -36,6 +44,7 @@ const CREATE_TABLE_SQL = `
     probedAt     TEXT    NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_probe_samples_domain ON probe_samples (domain);
+  CREATE INDEX IF NOT EXISTS idx_probe_samples_domain_corridor ON probe_samples (domain, corridor);
 `;
 
 interface OutcomeLogRowDb {
@@ -69,6 +78,8 @@ function fromDb(r: OutcomeLogRowDb): OutcomeLogRow {
 function fromProbeDb(r: Record<string, unknown>): ProbeLedgerRow {
   return {
     domain: String(r['domain']),
+    kind: (r['kind'] as ProbeLedgerRow['kind']) ?? 'uptime',
+    corridor: (r['corridor'] as string) ?? null,
     reachable: Boolean(r['reachable']),
     latencyMs: Number(r['latencyMs']),
     failureType: (r['failureType'] as ProbeLedgerRow['failureType']) ?? null,
@@ -153,25 +164,38 @@ export class SqliteReputationStore implements ReputationStore {
   async recordProbeSample(row: ProbeLedgerRow): Promise<void> {
     this.db
       .prepare(
-        `INSERT INTO probe_samples (domain, reachable, latencyMs, failureType, error, probedAt)
-         VALUES (@domain, @reachable, @latencyMs, @failureType, @error, @probedAt)`
+        `INSERT INTO probe_samples (domain, kind, corridor, reachable, latencyMs, failureType, error, probedAt)
+         VALUES (@domain, @kind, @corridor, @reachable, @latencyMs, @failureType, @error, @probedAt)`
       )
       .run({ ...row, reachable: row.reachable ? 1 : 0 });
   }
 
-  async queryProbeSamples(domain?: string): Promise<ProbeLedgerRow[]> {
+  async queryProbeSamples(domain?: string, filter: ProbeSampleQuery = {}): Promise<ProbeLedgerRow[]> {
+    const where: string[] = [];
+    const params: Record<string, unknown> = {};
     if (domain) {
-      return (
-        this.db
-          .prepare('SELECT * FROM probe_samples WHERE domain = ? ORDER BY probedAt ASC')
-          .all(domain) as Array<Record<string, unknown>>
-      ).map(fromProbeDb);
+      where.push('domain = @domain');
+      params['domain'] = domain;
     }
-    return (
-      this.db.prepare('SELECT * FROM probe_samples ORDER BY probedAt ASC').all() as Array<
-        Record<string, unknown>
-      >
-    ).map(fromProbeDb);
+    if (filter.corridor) {
+      where.push('corridor = @corridor');
+      params['corridor'] = filter.corridor;
+    }
+    if (filter.kind) {
+      where.push('kind = @kind');
+      params['kind'] = filter.kind;
+    }
+    const sql = `SELECT * FROM probe_samples ${
+      where.length ? `WHERE ${where.join(' AND ')}` : ''
+    } ORDER BY probedAt ASC`;
+    return (this.db.prepare(sql).all(params) as Array<Record<string, unknown>>).map(fromProbeDb);
+  }
+
+  async compactProbes(cutoff: Date): Promise<number> {
+    const result = this.db
+      .prepare(`DELETE FROM probe_samples WHERE probedAt < @cutoff`)
+      .run({ cutoff: cutoff.toISOString() });
+    return result.changes;
   }
 
   async close(): Promise<void> {

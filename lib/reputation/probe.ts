@@ -36,6 +36,8 @@ export interface ProbeSample {
   failureType?: ProbeFailureType | null;
   /** Failure reason when `reachable` is false. */
   error?: string;
+  /** Corridor ID this sample measured; present on quote-latency samples, absent on uptime samples. */
+  corridor?: string;
 }
 
 /** Persistence sink for probe samples. */
@@ -453,3 +455,180 @@ export async function probeQuoteDrift(
 
   return samples;
 }
+
+// ─── Quote-latency probe (Issue #D005) ─────────────────────────────────────────
+//
+// Times the SEP-38 quote round-trip per anchor per corridor, independent of the
+// uptime probe above, so a "reachable but slow" anchor is distinguishable from
+// one that's simply down. Uses the indicative GET /price endpoint (no SEP-10
+// JWT required) since a probe cycle has no authenticated session to reuse.
+
+/** The minimal outcome of a SEP-38 quote round-trip the probe depends on. */
+export interface QuoteProbeResult {
+  ok: boolean;
+  error?: string;
+}
+
+/** Injectable dependencies for the quote-latency probe. */
+export interface QuoteProbeDeps {
+  /** Times a SEP-38 quote round-trip for an anchor+corridor. Defaults to a real GET /price call. */
+  fetchQuote?: (anchor: Anchor, corridorId: string) => Promise<QuoteProbeResult>;
+  /** Monotonic-ish millisecond clock. Defaults to `Date.now`. */
+  now?: () => number;
+}
+
+async function defaultFetchQuote(anchor: Anchor, corridorId: string): Promise<QuoteProbeResult> {
+  const domain = anchor.serviceDomain ?? anchor.homeDomain;
+  const tomlResult = await resolveToml(domain);
+  if (!tomlResult.ok) {
+    return { ok: false, error: tomlResult.error };
+  }
+
+  let quoteServer: string;
+  try {
+    quoteServer = assertSep38Capable(tomlResult.data);
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+
+  const corridor = getCorridorById(corridorId);
+  try {
+    await getSep38Price({
+      quoteServer,
+      sell_asset: `stellar:${anchor.assetCode}:${anchor.assetIssuer}`,
+      buy_asset: `iso4217:${corridor.to}`,
+      sell_amount: '100',
+      context: 'sep31',
+    });
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
+function resolveQuoteDeps(deps?: QuoteProbeDeps): Required<QuoteProbeDeps> {
+  return {
+    fetchQuote: deps?.fetchQuote ?? defaultFetchQuote,
+    now: deps?.now ?? Date.now,
+  };
+}
+
+/**
+ * Probe one anchor+corridor's SEP-38 quote round-trip, timing the full request
+ * and recording one sample. Network/transport/capability failures are caught
+ * and recorded as unreachable rather than thrown, matching `probeAnchor`.
+ */
+export async function probeQuoteLatency(
+  anchor: Anchor,
+  corridorId: string,
+  store: ProbeSampleStore,
+  deps?: QuoteProbeDeps
+): Promise<ProbeSample> {
+  const { fetchQuote, now } = resolveQuoteDeps(deps);
+  const domain = anchor.serviceDomain ?? anchor.homeDomain;
+  const start = now();
+
+  let reachable = false;
+  let error: string | undefined;
+  let failureType: ProbeFailureType | null = null;
+  try {
+    const result = await fetchQuote(anchor, corridorId);
+    reachable = result.ok;
+    if (!result.ok) {
+      error = result.error ?? 'quote unavailable';
+      failureType = classifyFailure(error);
+    }
+  } catch (err) {
+    reachable = false;
+    error = err instanceof Error ? err.message : String(err);
+    failureType = classifyFailure(error);
+    logger.warn(
+      { event: 'probe.quote.error', domain, corridor: corridorId, error, failureType },
+      'quote probe caught an exception'
+    );
+  }
+
+  const end = now();
+  const sample: ProbeSample = {
+    domain,
+    corridor: corridorId,
+    reachable,
+    latencyMs: Math.max(0, end - start),
+    at: end,
+    failureType,
+    ...(error !== undefined ? { error } : {}),
+  };
+  logger.info(
+    {
+      event: 'probe.quote.sample',
+      domain,
+      corridor: corridorId,
+      reachable,
+      latencyMs: sample.latencyMs,
+      failureType,
+      error,
+    },
+    'quote-latency sample recorded'
+  );
+  store.record(sample);
+  return sample;
+}
+
+/**
+ * Runs the quote-latency probe for every anchor across all of its configured
+ * corridors, concurrently. Defaults to the registered fleet in
+ * `constants/anchors.ts`; a different anchor list may be injected for tests.
+ */
+export async function probeAllAnchorQuotes(
+  store: ProbeSampleStore,
+  deps?: QuoteProbeDeps,
+  anchors: readonly Anchor[] = ANCHORS
+): Promise<ProbeSample[]> {
+  const jobs = anchors.flatMap((anchor) =>
+    anchor.corridors.map((corridorId) => ({ anchor, corridorId }))
+  );
+  logger.info(
+    { event: 'probe.quote.all.start', jobCount: jobs.length },
+    'starting quote-latency probe run'
+  );
+  const samples = await Promise.all(
+    jobs.map(({ anchor, corridorId }) => probeQuoteLatency(anchor, corridorId, store, deps))
+  );
+  const reachable = samples.filter((s) => s.reachable).length;
+  logger.info(
+    {
+      event: 'probe.quote.all.complete',
+      total: samples.length,
+      reachable,
+      unreachable: samples.length - reachable,
+    },
+    'quote-latency probe run complete'
+  );
+  return samples;
+}
+
+/**
+ * p50/p95 latency for an anchor+corridor over a rolling window of its most
+ * recent *reachable* quote samples (default window: last 20). Distinct from
+ * `averageLatencyMs`, which mixes all corridors together — this isolates one
+ * corridor so a single degraded pair doesn't get averaged away. Returns `null`
+ * when there are no reachable samples for the pair.
+ */
+export function quoteLatencyPercentiles(
+  domain: string,
+  corridorId: string,
+  store: ProbeSampleStore,
+  windowSize = 20
+): { p50Ms: number; p95Ms: number; sampleCount: number } | null {
+  const reachable = store.samples(domain).filter((r) => r.corridor === corridorId && r.reachable);
+  const windowed = reachable.slice(Math.max(0, reachable.length - windowSize));
+  if (windowed.length === 0) return null;
+
+  const sorted = windowed.map((r) => r.latencyMs).sort((a, b) => a - b);
+  const rank = (p: number): number => {
+    const idx = Math.ceil((p / 100) * sorted.length) - 1;
+    return sorted[Math.min(Math.max(idx, 0), sorted.length - 1)]!;
+  };
+  return { p50Ms: rank(50), p95Ms: rank(95), sampleCount: windowed.length };
+}
+
