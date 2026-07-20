@@ -1,4 +1,4 @@
-import type { OutcomeLogRow, ProbeLedgerRow } from '@/types/reputation';
+import type { LatencyPercentiles, OutcomeLogRow, ProbeKind, ProbeLedgerRow } from '@/types/reputation';
 import { SqliteReputationStore } from './sqlite';
 import { PostgresReputationStore, type SqlExecutor } from './postgres';
 
@@ -26,6 +26,11 @@ export interface DisputedUpdate {
   disputedReason: string | null;
 }
 
+export interface ProbeSampleQuery {
+  corridor?: string;
+  kind?: ProbeKind;
+}
+
 export interface ReputationStore {
   /** Idempotent on intentHash — re-appending the same row replaces it. */
   append(row: OutcomeLogRow): Promise<void>;
@@ -34,11 +39,50 @@ export interface ReputationStore {
   markDelivered(intentHash: string, update: DeliveredUpdate): Promise<void>;
   /** Sets or clears the disputed flag on a row (used by the dispute API, #164/#165). */
   markDisputed(intentHash: string, update: DisputedUpdate): Promise<void>;
-  /** Record a probe sample into the uptime health ledger (#D002). */
+  /** Record a probe sample (uptime or quote-latency) into the health ledger (#D002 / #D005). */
   recordProbeSample(row: ProbeLedgerRow): Promise<void>;
-  /** Query probe samples, optionally filtered to a single domain, oldest first. */
-  queryProbeSamples(domain?: string): Promise<ProbeLedgerRow[]>;
+  /** Query probe samples, optionally filtered to a domain and/or corridor/kind, oldest first. */
+  queryProbeSamples(domain?: string, filter?: ProbeSampleQuery): Promise<ProbeLedgerRow[]>;
   close(): Promise<void>;
+}
+
+function matchesProbeFilter(row: ProbeLedgerRow, filter: ProbeSampleQuery): boolean {
+  if (filter.corridor && row.corridor !== filter.corridor) return false;
+  if (filter.kind && row.kind !== filter.kind) return false;
+  return true;
+}
+
+/**
+ * Nearest-rank percentile over a sorted ascending array of numbers.
+ * Returns `null` for an empty input.
+ */
+export function percentile(sortedValues: number[], p: number): number | null {
+  if (sortedValues.length === 0) return null;
+  const rank = Math.ceil((p / 100) * sortedValues.length) - 1;
+  const index = Math.min(Math.max(rank, 0), sortedValues.length - 1);
+  return sortedValues[index]!;
+}
+
+/**
+ * Computes p50/p95 latency over the most recent `windowSize` reachable rows
+ * (oldest-first input, so the window is the tail of the array). Unreachable
+ * rows are excluded — a timeout shouldn't be counted as "fast" or "slow".
+ * Returns `null` when there are no reachable rows in the window.
+ */
+export function computeLatencyPercentiles(
+  rows: readonly ProbeLedgerRow[],
+  windowSize = 20
+): LatencyPercentiles | null {
+  const reachable = rows.filter((r) => r.reachable);
+  const windowed = reachable.slice(Math.max(0, reachable.length - windowSize));
+  if (windowed.length === 0) return null;
+
+  const sorted = windowed.map((r) => r.latencyMs).sort((a, b) => a - b);
+  return {
+    p50Ms: percentile(sorted, 50)!,
+    p95Ms: percentile(sorted, 95)!,
+    sampleCount: windowed.length,
+  };
 }
 
 function matches(row: OutcomeLogRow, filter: OutcomeQuery): boolean {
@@ -86,8 +130,10 @@ export class InMemoryReputationStore implements ReputationStore {
     this.probeSamples.push({ ...row });
   }
 
-  async queryProbeSamples(domain?: string): Promise<ProbeLedgerRow[]> {
-    const rows = domain ? this.probeSamples.filter((r) => r.domain === domain) : this.probeSamples;
+  async queryProbeSamples(domain?: string, filter?: ProbeSampleQuery): Promise<ProbeLedgerRow[]> {
+    const rows = this.probeSamples
+      .filter((r) => !domain || r.domain === domain)
+      .filter((r) => !filter || matchesProbeFilter(r, filter));
     return rows.map((r) => ({ ...r })).sort((a, b) => a.probedAt.localeCompare(b.probedAt));
   }
 

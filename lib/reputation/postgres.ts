@@ -1,5 +1,11 @@
 import type { OutcomeLogRow, OutcomeStatus, ProbeLedgerRow } from '@/types/reputation';
-import type { DeliveredUpdate, DisputedUpdate, OutcomeQuery, ReputationStore } from './store';
+import type {
+  DeliveredUpdate,
+  DisputedUpdate,
+  OutcomeQuery,
+  ProbeSampleQuery,
+  ReputationStore,
+} from './store';
 
 // ─── Postgres backend (Issue #128 / #219) — production ─────────────────────────
 //
@@ -36,6 +42,8 @@ const CREATE_TABLE_SQL = `
 
   CREATE TABLE IF NOT EXISTS probe_samples (
     domain        TEXT NOT NULL,
+    kind          TEXT NOT NULL DEFAULT 'uptime',
+    corridor      TEXT,
     reachable     BOOLEAN NOT NULL,
     latency_ms    DOUBLE PRECISION NOT NULL,
     failure_type  TEXT,
@@ -43,6 +51,7 @@ const CREATE_TABLE_SQL = `
     probed_at     TIMESTAMPTZ NOT NULL
   );
   CREATE INDEX IF NOT EXISTS idx_probe_samples_domain ON probe_samples (domain);
+  CREATE INDEX IF NOT EXISTS idx_probe_samples_domain_corridor ON probe_samples (domain, corridor);
 `;
 
 function fromDb(r: Record<string, unknown>): OutcomeLogRow {
@@ -73,6 +82,8 @@ function fromProbeDb(r: Record<string, unknown>): ProbeLedgerRow {
   const asString = (v: unknown): string | null => (v == null ? null : String(v));
   return {
     domain: String(r['domain']),
+    kind: (r['kind'] as ProbeLedgerRow['kind']) ?? 'uptime',
+    corridor: asString(r['corridor']),
     reachable: Boolean(r['reachable']),
     latencyMs: Number(r['latency_ms']),
     failureType: (r['failure_type'] as ProbeLedgerRow['failureType']) ?? null,
@@ -184,22 +195,41 @@ export class PostgresReputationStore implements ReputationStore {
   async recordProbeSample(row: ProbeLedgerRow): Promise<void> {
     await this.init();
     await this.sql.query(
-      `INSERT INTO probe_samples (domain, reachable, latency_ms, failure_type, error, probed_at)
-       VALUES ($1, $2, $3, $4, $5, $6)`,
-      [row.domain, row.reachable ? 1 : 0, row.latencyMs, row.failureType, row.error, row.probedAt]
+      `INSERT INTO probe_samples (domain, kind, corridor, reachable, latency_ms, failure_type, error, probed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+      [
+        row.domain,
+        row.kind,
+        row.corridor,
+        row.reachable ? 1 : 0,
+        row.latencyMs,
+        row.failureType,
+        row.error,
+        row.probedAt,
+      ]
     );
   }
 
-  async queryProbeSamples(domain?: string): Promise<ProbeLedgerRow[]> {
+  async queryProbeSamples(domain?: string, filter: ProbeSampleQuery = {}): Promise<ProbeLedgerRow[]> {
     await this.init();
+    const where: string[] = [];
+    const params: unknown[] = [];
     if (domain) {
-      const { rows } = await this.sql.query(
-        'SELECT * FROM probe_samples WHERE domain = $1 ORDER BY probed_at ASC',
-        [domain]
-      );
-      return rows.map(fromProbeDb);
+      params.push(domain);
+      where.push(`domain = $${params.length}`);
     }
-    const { rows } = await this.sql.query('SELECT * FROM probe_samples ORDER BY probed_at ASC');
+    if (filter.corridor) {
+      params.push(filter.corridor);
+      where.push(`corridor = $${params.length}`);
+    }
+    if (filter.kind) {
+      params.push(filter.kind);
+      where.push(`kind = $${params.length}`);
+    }
+    const sql = `SELECT * FROM probe_samples ${
+      where.length ? `WHERE ${where.join(' AND ')}` : ''
+    } ORDER BY probed_at ASC`;
+    const { rows } = await this.sql.query(sql, params);
     return rows.map(fromProbeDb);
   }
 

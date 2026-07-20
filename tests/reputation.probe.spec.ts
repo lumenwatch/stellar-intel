@@ -6,8 +6,13 @@ import {
   reachabilityScore,
   averageLatencyMs,
   classifyFailure,
+  probeQuoteLatency,
+  probeAllAnchorQuotes,
+  quoteLatencyPercentiles,
   type TomlProbeResult,
+  type QuoteProbeResult,
 } from '@/lib/reputation/probe';
+import type { Anchor } from '@/types';
 
 /** Deterministic clock: returns `start`, then advances by `step` each call. */
 function steppingClock(start = 1000, step = 120): () => number {
@@ -161,5 +166,139 @@ describe('reputation probe', () => {
 
     expect(sample.reachable).toBe(true);
     expect(sample.failureType).toBeNull();
+  });
+});
+
+function testAnchor(over: Partial<Anchor> = {}): Anchor {
+  return {
+    id: 'test-anchor',
+    name: 'Test Anchor',
+    homeDomain: 'anchor.example',
+    corridors: ['usdc-ngn'],
+    assetCode: 'USDC',
+    assetIssuer: 'GISSUER',
+    seps: ['sep10', 'sep38'],
+    ...over,
+  };
+}
+
+const quoteOk = async (): Promise<QuoteProbeResult> => ({ ok: true });
+const quoteDown = async (): Promise<QuoteProbeResult> => ({ ok: false, error: 'HTTP 503' });
+
+describe('quote-latency probe', () => {
+  it('records a reachable quote sample with measured latency and corridor', async () => {
+    const store = new InMemoryProbeStore();
+    const anchor = testAnchor();
+    const sample = await probeQuoteLatency(anchor, 'usdc-ngn', store, {
+      fetchQuote: quoteOk,
+      now: steppingClock(1000, 80),
+    });
+
+    expect(sample.reachable).toBe(true);
+    expect(sample.latencyMs).toBe(80);
+    expect(sample.corridor).toBe('usdc-ngn');
+    expect(sample.domain).toBe('anchor.example');
+    expect(store.samples('anchor.example')).toHaveLength(1);
+  });
+
+  it('records an unreachable quote sample when the quote fetch fails', async () => {
+    const store = new InMemoryProbeStore();
+    const sample = await probeQuoteLatency(testAnchor(), 'usdc-ngn', store, {
+      fetchQuote: quoteDown,
+    });
+
+    expect(sample.reachable).toBe(false);
+    expect(sample.error).toBe('HTTP 503');
+    expect(sample.failureType).toBe('http');
+  });
+
+  it('records unreachable (does not throw) when the quote fetcher throws', async () => {
+    const store = new InMemoryProbeStore();
+    const throwsQuote = async (): Promise<QuoteProbeResult> => {
+      throw new Error('The operation was aborted');
+    };
+    const sample = await probeQuoteLatency(testAnchor(), 'usdc-ngn', store, {
+      fetchQuote: throwsQuote,
+    });
+
+    expect(sample.reachable).toBe(false);
+    expect(sample.failureType).toBe('timeout');
+  });
+
+  it('probeAllAnchorQuotes probes every anchor+corridor pair concurrently', async () => {
+    const store = new InMemoryProbeStore();
+    const anchors = [
+      testAnchor({ id: 'a', homeDomain: 'a.example', corridors: ['usdc-ngn', 'usdc-kes'] }),
+      testAnchor({ id: 'b', homeDomain: 'b.example', corridors: ['usdc-ars'] }),
+    ];
+    const samples = await probeAllAnchorQuotes(store, { fetchQuote: quoteOk }, anchors);
+
+    expect(samples).toHaveLength(3);
+    expect(store.samples('a.example')).toHaveLength(2);
+    expect(store.samples('b.example')).toHaveLength(1);
+  });
+
+  it('computes p50/p95 latency over a rolling window for one anchor+corridor', async () => {
+    const store = new InMemoryProbeStore();
+    const anchor = testAnchor();
+    const latencies = [100, 200, 300, 400, 500];
+    for (const latency of latencies) {
+      await probeQuoteLatency(anchor, 'usdc-ngn', store, {
+        fetchQuote: quoteOk,
+        now: steppingClock(0, latency),
+      });
+    }
+
+    const stats = quoteLatencyPercentiles('anchor.example', 'usdc-ngn', store);
+    expect(stats).not.toBeNull();
+    expect(stats!.sampleCount).toBe(5);
+    expect(stats!.p50Ms).toBe(300);
+    expect(stats!.p95Ms).toBe(500);
+  });
+
+  it('excludes unreachable samples and other corridors from percentiles', async () => {
+    const store = new InMemoryProbeStore();
+    const anchor = testAnchor({ corridors: ['usdc-ngn', 'usdc-kes'] });
+    await probeQuoteLatency(anchor, 'usdc-ngn', store, {
+      fetchQuote: quoteOk,
+      now: steppingClock(0, 100),
+    });
+    await probeQuoteLatency(anchor, 'usdc-ngn', store, {
+      fetchQuote: quoteDown,
+      now: steppingClock(0, 9000),
+    });
+    await probeQuoteLatency(anchor, 'usdc-kes', store, {
+      fetchQuote: quoteOk,
+      now: steppingClock(0, 5000),
+    });
+
+    const stats = quoteLatencyPercentiles('anchor.example', 'usdc-ngn', store);
+    expect(stats!.sampleCount).toBe(1);
+    expect(stats!.p50Ms).toBe(100);
+  });
+
+  it('honors a configurable rolling window size', async () => {
+    const store = new InMemoryProbeStore();
+    const anchor = testAnchor();
+    for (const latency of [100, 100, 100, 900, 900]) {
+      await probeQuoteLatency(anchor, 'usdc-ngn', store, {
+        fetchQuote: quoteOk,
+        now: steppingClock(0, latency),
+      });
+    }
+
+    // Full history includes the three fast samples; a window of 2 keeps only
+    // the most recent (slow) pair.
+    const full = quoteLatencyPercentiles('anchor.example', 'usdc-ngn', store);
+    const windowed = quoteLatencyPercentiles('anchor.example', 'usdc-ngn', store, 2);
+
+    expect(full!.sampleCount).toBe(5);
+    expect(windowed!.sampleCount).toBe(2);
+    expect(windowed!.p50Ms).toBe(900);
+  });
+
+  it('returns null when an anchor+corridor has no reachable quote samples', () => {
+    const store = new InMemoryProbeStore();
+    expect(quoteLatencyPercentiles('unknown.example', 'usdc-ngn', store)).toBeNull();
   });
 });
