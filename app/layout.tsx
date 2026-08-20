@@ -102,7 +102,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <TestnetBanner />
               <OfflineBar />
               <Header />
-              <main id="main-content" className="mx-auto max-w-7xl px-4 py-8">
+              {/* `min-w-0` is load-bearing. <main> is a flex item of the body
+                  column, and a flex item defaults to `min-width: auto`, so it
+                  refuses to shrink below the intrinsic width of its widest
+                  child. Any wide table then pushes the whole page sideways at
+                  390px and no `overflow-x-auto` inside can contain it, because
+                  the scroll container itself is being stretched. */}
+              <main id="main-content" className="mx-auto w-full max-w-7xl min-w-0 px-4 py-8">
                 {children}
               </main>
               <Footer />
