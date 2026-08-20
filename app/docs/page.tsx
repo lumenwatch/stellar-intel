@@ -2,45 +2,30 @@ import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { DOCS_CARD_ROUTES } from './nav';
 
-const CARD_DETAIL: Record<
-  string,
-  { title: string; description: string; color: string; bg: string }
-> = {
+const CARD_DETAIL: Record<string, { title: string; description: string }> = {
   '/docs/quickstart': {
     title: 'Quickstart',
     description: 'Make your first API call in under 5 minutes.',
-    color: 'text-accent',
-    bg: 'bg-accent-subtle ',
   },
   '/docs/api': {
     title: 'Interactive API Reference',
     description: 'Explore every endpoint with live try-it panels.',
-    color: 'text-status-up',
-    bg: 'bg-accent-subtle ',
   },
   '/docs/auth': {
     title: 'Auth & Rate Limits',
     description: 'Authentication methods, API keys, and rate-limit tiers.',
-    color: 'text-accent dark:text-accent',
-    bg: 'bg-bg-sunken dark:bg-accent-subtle',
   },
   '/docs/webhooks': {
     title: 'Webhooks',
     description: 'Receive real-time event notifications from the platform.',
-    color: 'text-status-unknown dark:text-status-unknown',
-    bg: 'bg-bg-sunken',
   },
   '/docs/sdks': {
     title: 'SDKs & Libraries',
     description: 'TypeScript, Python, and Rust client libraries.',
-    color: 'text-cyan-600 dark:text-cyan-400',
-    bg: 'bg-cyan-50 dark:bg-cyan-900/30',
   },
   '/docs/mcp': {
     title: 'MCP Tool Docs',
     description: 'Use Stellar Intel through AI agents via the MCP server.',
-    color: 'text-rose-600 dark:text-rose-400',
-    bg: 'bg-rose-50 dark:bg-rose-900/30',
   },
 };
 
@@ -53,8 +38,6 @@ const DOCS_CARDS = DOCS_CARD_ROUTES.map((route) => {
     icon: route.icon,
     title: detail?.title ?? route.label,
     description: detail?.description ?? '',
-    color: detail?.color ?? 'text-accent',
-    bg: detail?.bg ?? 'bg-accent-subtle',
   };
 });
 
@@ -77,8 +60,8 @@ export default function DocsHome() {
               href={card.href}
               className="group rounded-xl border border-border bg-background p-5 transition-all hover: hover:border-accent/50"
             >
-              <div className={`mb-3 inline-flex rounded-lg p-2.5 ${card.bg}`}>
-                <Icon className={`h-5 w-5 ${card.color}`} />
+              <div className="border-border bg-bg-sunken mb-3 inline-flex rounded-sm border p-2.5">
+                <Icon className="text-secondary-text h-5 w-5" aria-hidden="true" />
               </div>
               <h3 className="mb-1 font-semibold text-primary-text group-hover:text-accent">
                 {card.title}
