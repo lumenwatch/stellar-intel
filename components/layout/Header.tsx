@@ -163,7 +163,7 @@ export function Header() {
                 'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
                 pathname === href
                   ? 'bg-primary-text/10 text-accent'
-                  : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                  : 'text-secondary-text hover:bg-bg-sunken dark:text-fg-muted dark:hover:bg-bg-sunken'
               )}
             >
               {label}

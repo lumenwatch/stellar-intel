@@ -19,13 +19,10 @@ export function LeaderboardTeaser() {
     <section aria-labelledby="leaderboard-teaser-heading">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
-          <h2
-            id="leaderboard-teaser-heading"
-            className="text-lg font-semibold text-gray-900 dark:text-white"
-          >
+          <h2 id="leaderboard-teaser-heading" className="text-lg font-semibold text-primary-text">
             Anchor leaderboard
           </h2>
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-1 text-sm text-secondary-text">
             Live payout ranking for {corridor.from} → {corridor.to}, updated every 30s.
           </p>
         </div>

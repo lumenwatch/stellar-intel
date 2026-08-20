@@ -9,26 +9,26 @@ const CARD_DETAIL: Record<
   '/docs/quickstart': {
     title: 'Quickstart',
     description: 'Make your first API call in under 5 minutes.',
-    color: 'text-blue-600 dark:text-blue-400',
-    bg: 'bg-blue-50 dark:bg-blue-900/30',
+    color: 'text-accent',
+    bg: 'bg-accent-subtle ',
   },
   '/docs/api': {
     title: 'Interactive API Reference',
     description: 'Explore every endpoint with live try-it panels.',
-    color: 'text-green-600 dark:text-green-400',
-    bg: 'bg-green-50 dark:bg-green-900/30',
+    color: 'text-status-up',
+    bg: 'bg-accent-subtle ',
   },
   '/docs/auth': {
     title: 'Auth & Rate Limits',
     description: 'Authentication methods, API keys, and rate-limit tiers.',
-    color: 'text-purple-600 dark:text-purple-400',
-    bg: 'bg-purple-50 dark:bg-purple-900/30',
+    color: 'text-accent dark:text-accent',
+    bg: 'bg-bg-sunken dark:bg-accent-subtle',
   },
   '/docs/webhooks': {
     title: 'Webhooks',
     description: 'Receive real-time event notifications from the platform.',
-    color: 'text-orange-600 dark:text-orange-400',
-    bg: 'bg-orange-50 dark:bg-orange-900/30',
+    color: 'text-status-unknown dark:text-status-unknown',
+    bg: 'bg-bg-sunken',
   },
   '/docs/sdks': {
     title: 'SDKs & Libraries',
@@ -75,7 +75,7 @@ export default function DocsHome() {
             <Link
               key={card.href}
               href={card.href}
-              className="group rounded-xl border border-border bg-background p-5 transition-all hover:shadow-md hover:border-accent/50"
+              className="group rounded-xl border border-border bg-background p-5 transition-all hover: hover:border-accent/50"
             >
               <div className={`mb-3 inline-flex rounded-lg p-2.5 ${card.bg}`}>
                 <Icon className={`h-5 w-5 ${card.color}`} />
@@ -95,13 +95,13 @@ export default function DocsHome() {
       <div className="rounded-xl border border-border bg-bg-subtle p-6">
         <h2 className="text-xl font-semibold text-primary-text">API Base URL</h2>
         <div className="mt-3 flex items-center gap-2">
-          <code className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-mono text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          <code className="rounded-md bg-bg-sunken px-3 py-1.5 text-sm font-mono text-primary-text">
             https://stellar-intel.vercel.app
           </code>
           <span className="text-sm text-secondary-text">— Production</span>
         </div>
         <div className="mt-2 flex items-center gap-2">
-          <code className="rounded-md bg-gray-100 px-3 py-1.5 text-sm font-mono text-gray-800 dark:bg-gray-800 dark:text-gray-200">
+          <code className="rounded-md bg-bg-sunken px-3 py-1.5 text-sm font-mono text-primary-text">
             http://localhost:3000
           </code>
           <span className="text-sm text-secondary-text">— Local development</span>

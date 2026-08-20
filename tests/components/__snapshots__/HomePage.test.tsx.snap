@@ -359,7 +359,7 @@ exports[`HomePage > matches snapshot 1`] = `
       aria-label="Supported corridors"
     >
       <p
-        class="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400"
+        class="mb-3 text-xs font-semibold uppercase tracking-wide text-fg-muted"
       >
         Supported corridors
       </p>
@@ -367,7 +367,7 @@ exports[`HomePage > matches snapshot 1`] = `
         class="flex flex-wrap gap-2"
       >
         <li
-          class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          class="inline-flex items-center gap-2 rounded-full border border-border bg-bg-subtle px-3 py-1.5 text-sm font-medium text-secondary-text"
         >
           <span
             aria-hidden="true"
@@ -385,7 +385,7 @@ exports[`HomePage > matches snapshot 1`] = `
           </span>
         </li>
         <li
-          class="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
+          class="inline-flex items-center gap-2 rounded-full border border-border bg-bg-subtle px-3 py-1.5 text-sm font-medium text-secondary-text"
         >
           <span
             aria-hidden="true"
@@ -417,13 +417,13 @@ exports[`HomePage > matches snapshot 1`] = `
       >
         <div>
           <h2
-            class="text-lg font-semibold text-gray-900 dark:text-white"
+            class="text-lg font-semibold text-primary-text"
             id="leaderboard-teaser-heading"
           >
             Anchor leaderboard
           </h2>
           <p
-            class="mt-1 text-sm text-gray-600 dark:text-gray-400"
+            class="mt-1 text-sm text-secondary-text"
           >
             Live payout ranking for 
             USDC
@@ -459,37 +459,37 @@ exports[`HomePage > matches snapshot 1`] = `
         </a>
       </div>
       <div
-        class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+        class="overflow-hidden rounded-xl border border-border"
       >
         <table
           class="w-full text-sm"
         >
           <thead>
             <tr
-              class="border-b border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
+              class="border-b border-border bg-bg-sunken /50"
             >
               <th
-                class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400"
+                class="px-4 py-3 text-left font-medium text-secondary-text"
               >
                 Rate Rank
               </th>
               <th
-                class="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-400"
+                class="px-4 py-3 text-left font-medium text-secondary-text"
               >
                 Anchor
               </th>
               <th
-                class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+                class="px-4 py-3 text-right font-medium text-secondary-text"
               >
                 Rate (per USDC)
               </th>
               <th
-                class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+                class="px-4 py-3 text-right font-medium text-secondary-text"
               >
                 Fee
               </th>
               <th
-                class="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-400"
+                class="px-4 py-3 text-right font-medium text-secondary-text"
               >
                 You Receive
               </th>
@@ -497,10 +497,10 @@ exports[`HomePage > matches snapshot 1`] = `
           </thead>
           <tbody>
             <tr
-              class="border-t border-blue-200 bg-blue-50/50 dark:border-blue-900 dark:bg-blue-950/20"
+              class="border-t border-border bg-accent-subtle/50  "
             >
               <td
-                class="px-4 py-3 text-gray-500 dark:text-gray-400"
+                class="px-4 py-3 text-fg-muted"
               >
                 #1
               </td>
@@ -511,7 +511,7 @@ exports[`HomePage > matches snapshot 1`] = `
                   class="flex items-center gap-2"
                 >
                   <span
-                    class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-gray-100 font-semibold text-gray-700 shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 h-7 w-7 text-xs"
+                    class="border-border bg-bg-sunken text-secondary-text inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full border font-medium saturate-[0.75] transition-[filter] duration-100 ease-out group-hover:saturate-100 group-focus-visible:saturate-100 h-7 w-7 text-xs"
                   >
                     <img
                       alt="Anchor A logo"
@@ -526,19 +526,19 @@ exports[`HomePage > matches snapshot 1`] = `
                     />
                   </span>
                   <span
-                    class="font-medium text-gray-900 dark:text-white"
+                    class="font-medium text-primary-text"
                   >
                     Anchor A
                   </span>
                   <span
-                    class="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                    class="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent"
                   >
                     Best
                   </span>
                   <span
                     aria-label="Firm quote expires in 60 seconds"
                     aria-live="polite"
-                    class="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300"
+                    class="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-status-up"
                     role="timer"
                   >
                     Firm · 
@@ -548,17 +548,17 @@ exports[`HomePage > matches snapshot 1`] = `
                 </div>
               </td>
               <td
-                class="px-4 py-3 text-right text-gray-700 dark:text-gray-300"
+                class="px-4 py-3 text-right text-secondary-text"
               >
                 1 USDC = 1,600 NGN
               </td>
               <td
-                class="px-4 py-3 text-right text-gray-700 dark:text-gray-300"
+                class="px-4 py-3 text-right text-secondary-text"
               >
                 $1.00
               </td>
               <td
-                class="px-4 py-3 text-right font-medium text-gray-900 dark:text-white"
+                class="px-4 py-3 text-right font-medium text-primary-text"
               >
                 NGN 158,000.00
               </td>
@@ -590,7 +590,7 @@ exports[`HomePage > matches snapshot 1`] = `
         class="mt-10"
       >
         <div
-          class="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700"
+          class="overflow-hidden rounded-xl border border-border"
         >
           <table
             class="w-full text-sm"
@@ -926,13 +926,13 @@ exports[`HomePage > matches snapshot 1`] = `
       aria-labelledby="faq-heading"
     >
       <h2
-        class="mb-6 text-xl font-semibold text-gray-900 dark:text-white"
+        class="mb-6 text-xl font-semibold text-primary-text"
         id="faq-heading"
       >
         Frequently asked questions
       </h2>
       <dl
-        class="divide-y divide-gray-200 rounded-xl border border-gray-200 dark:divide-gray-700 dark:border-gray-700"
+        class="divide-y divide-gray-200 rounded-xl border border-border dark:divide-gray-700"
       >
         <div>
           <dt
@@ -941,7 +941,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-0"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -949,7 +949,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -967,7 +967,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-0"
           >
@@ -981,7 +981,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-1"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -989,7 +989,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1007,7 +1007,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-1"
           >
@@ -1021,7 +1021,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-2"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1029,7 +1029,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1047,7 +1047,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-2"
           >
@@ -1061,7 +1061,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-3"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1069,7 +1069,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1087,7 +1087,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-3"
           >
@@ -1101,7 +1101,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-4"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1109,7 +1109,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1127,7 +1127,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-4"
           >
@@ -1141,7 +1141,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-5"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1149,7 +1149,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1167,7 +1167,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-5"
           >
@@ -1181,7 +1181,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-6"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1189,7 +1189,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1207,7 +1207,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-6"
           >
@@ -1221,7 +1221,7 @@ exports[`HomePage > matches snapshot 1`] = `
             <button
               aria-controls="faq-panel-7"
               aria-expanded="false"
-              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-gray-900 hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-600 dark:text-white dark:hover:bg-gray-800/60"
+              class="flex w-full items-center justify-between px-5 py-4 text-left text-sm font-medium text-primary-text hover:bg-bg-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent dark:hover:bg-bg-sunken/60"
               type="button"
             >
               <span>
@@ -1229,7 +1229,7 @@ exports[`HomePage > matches snapshot 1`] = `
               </span>
               <svg
                 aria-hidden="true"
-                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-gray-500 transition-transform duration-200 dark:text-gray-400"
+                class="lucide lucide-chevron-down ml-4 h-4 w-4 shrink-0 text-fg-muted transition-transform duration-200 dark:text-fg-muted"
                 fill="none"
                 height="24"
                 stroke="currentColor"
@@ -1247,7 +1247,7 @@ exports[`HomePage > matches snapshot 1`] = `
             </button>
           </dt>
           <dd
-            class="px-5 pb-4 pt-0 text-sm text-gray-600 dark:text-gray-400"
+            class="px-5 pb-4 pt-0 text-sm text-secondary-text"
             hidden=""
             id="faq-panel-7"
           >

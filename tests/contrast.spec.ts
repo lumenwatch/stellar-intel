@@ -161,23 +161,16 @@ const BANNED = [
  * later". Anything added here needs the same kind of reason.
  */
 const EXEMPT: Array<{ file: string; reason: string }> = [
-  {
-    file: 'components/ui/Sparkline.tsx',
-    reason: 'aria-hidden decorative empty-state baseline — carries no information',
-  },
-  {
-    file: 'components/offramp/RateTable.tsx',
-    reason: 'disabled "Unavailable" button — WCAG 1.4.3 exempts disabled controls',
-  },
-  {
-    file: 'components/offramp/ExecuteDrawer.tsx',
-    reason:
-      'pending step markers — inactive controls are exempt, and the active step must stand out',
-  },
-  {
-    file: 'components/docs/CodeBlock.tsx',
-    reason: 'copy button sits on bg-gray-950 in both themes, measured 7.5:1',
-  },
+  // Empty, and worth keeping empty.
+  //
+  // The four entries that used to live here — Sparkline, RateTable,
+  // ExecuteDrawer and CodeBlock — were all resolved when the components moved
+  // onto semantic theme tokens. None of them contains a raw grey any more, so
+  // none of them needs excusing.
+  //
+  // Anything added back needs the same kind of reason the originals had: exempt
+  // under the spec, or measured against a background other than the page
+  // background. Not "we'll fix it later".
 ];
 
 function tsxFiles(dir: string): string[] {

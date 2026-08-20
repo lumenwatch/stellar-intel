@@ -10,8 +10,8 @@ interface SkeletonProps extends HTMLAttributes<HTMLDivElement> {
 
 /**
  * Loading placeholders read from the surface tokens rather than raw greys, so
- * they sit on the page instead of hovering slightly off it — `bg-gray-200` on a
- * warm off-white is visibly the wrong grey, and `bg-gray-700` is far too light
+ * they sit on the page instead of hovering slightly off it — `bg-bg-sunken` on a
+ * warm off-white is visibly the wrong grey, and `bg-bg-sunken` is far too light
  * against the dark surface.
  *
  * A skeleton should also match the shape of what loads. These are thin bars at
