@@ -34,7 +34,7 @@ export function Badge({ children, variant, risk }: BadgeProps) {
     <span
       className={clsx(
         'inline-flex items-center rounded-sm px-2 py-0.5',
-        'font-mono text-xs font-medium tracking-wide',
+        'font-mono text-xs font-medium tracking-wide whitespace-nowrap',
         {
           'bg-bg-sunken text-secondary-text': resolvedVariant === 'default',
           'bg-accent-subtle text-status-up': resolvedVariant === 'success',

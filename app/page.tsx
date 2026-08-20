@@ -142,17 +142,33 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
+
+          {/* The execution path belongs on this page, but below the record and
+              never above the fold — docs/POSITIONING.md is explicit that
+              leading with the dependent half is how the earlier framing went
+              wrong. tests/components/HomePage.test.tsx asserts both halves of
+              that placement. */}
+          <p className="text-secondary-text measure mt-10 text-base">
+            Built on the record, there is an execution path: choose a corridor, then sign a single
+            intent in Freighter and settle directly on Stellar &mdash; non-custodial, with the
+            anchor taking custody under SEP-24 and this project never holding funds.
+          </p>
         </section>
       </LandingSection>
 
-      {/* Two real destinations, as a bordered list rather than tinted icon cards. */}
+      {/* Three real destinations, as a bordered list rather than tinted icon cards. */}
       <LandingSection delay={175}>
         <section aria-labelledby="build-heading">
           <h2 id="build-heading" className="type-title">
             Build on it
           </h2>
-          <div className="border-border mt-10 grid grid-cols-1 border-t sm:grid-cols-2">
+          <div className="border-border mt-10 grid grid-cols-1 border-t sm:grid-cols-3">
             {[
+              {
+                href: '/offramp',
+                title: 'Off-ramp',
+                body: 'Route a USDC off-ramp to the cheapest anchor, by country and corridor.',
+              },
               {
                 href: '/docs',
                 title: 'Developer portal',

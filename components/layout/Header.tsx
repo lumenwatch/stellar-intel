@@ -87,7 +87,7 @@ export function Header() {
             aria-label="Stellar Intel — home"
             className="focus-visible:ring-accent focus-visible:ring-offset-background inline-flex h-11 items-center rounded-sm pr-2 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
           >
-            <span className="text-[15px] leading-none font-bold tracking-[0.02em] [font-variation-settings:'wdth'_125]">
+            <span className="text-[15px] leading-none font-bold tracking-[0.02em] whitespace-nowrap [font-variation-settings:'wdth'_125]">
               STELLAR INTEL
             </span>
           </Link>
