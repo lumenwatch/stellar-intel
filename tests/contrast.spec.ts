@@ -232,6 +232,40 @@ describe('components do not reintroduce failing raw greys', () => {
   });
 });
 
+describe('components do not hardcode colour literals', () => {
+  // The raw-grey guard above only reads `className`. Colour set through SVG
+  // presentation attributes or an inline style never appears there, so it was
+  // invisible to it — `AnchorProfile`'s history chart carried a hardcoded
+  // `rgb(59,130,246)` (Tailwind blue-500) through a full tokenisation pass with
+  // the suite green the whole time. Palette changes silently skipped it.
+  //
+  // Colour belongs to the theme. In SVG, reach it with `currentColor` plus a
+  // text utility, or `var(--color-*)` directly.
+  const COLOUR_ATTR =
+    /(?:stopColor|fill|stroke|color|floodColor|lightingColor)=["'](?:#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\()/;
+  const INLINE_STYLE_COLOUR = /style=\{\{[^}]*(?:#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\()/;
+
+  const files = [...tsxFiles('components'), ...tsxFiles('app')].filter(
+    (f) => !f.endsWith('.test.tsx')
+  );
+
+  it('scans a non-trivial number of files', () => {
+    expect(files.length).toBeGreaterThan(50);
+  });
+
+  it.each(files)('%s uses theme colour, not a literal', (file) => {
+    const offenders = readFileSync(file, 'utf8')
+      .split('\n')
+      .map((line, i) => ({ line, n: i + 1 }))
+      .filter(({ line }) => COLOUR_ATTR.test(line) || INLINE_STYLE_COLOUR.test(line));
+
+    expect(
+      offenders.map(({ n, line }) => `${file}:${n} ${line.trim()}`).join('\n'),
+      `${file} hardcodes a colour literal — use currentColor with a text utility, or var(--color-*)`
+    ).toBe('');
+  });
+});
+
 describe('contrastRatio', () => {
   it('matches known WCAG values', () => {
     expect(contrastRatio('#000000', '#ffffff')).toBeCloseTo(21, 5);

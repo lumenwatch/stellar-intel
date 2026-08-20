@@ -110,16 +110,24 @@ export function AnchorProfile({ data }: { data: AnchorProfileData }) {
             viewBox="0 0 560 220"
             role="img"
             aria-label="Anchor history chart"
-            className="h-56 w-full"
+            className="h-56 w-full text-accent"
           >
             <defs>
               <linearGradient id="history-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(59,130,246,0.4)" />
-                <stop offset="100%" stopColor="rgba(59,130,246,0.05)" />
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.4" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0.05" />
               </linearGradient>
             </defs>
-            <rect x="0" y="0" width="560" height="220" rx="12" fill="rgba(148,163,184,0.08)" />
-            <polyline fill="none" stroke="rgb(59,130,246)" strokeWidth="3" points={points} />
+            <rect
+              x="0"
+              y="0"
+              width="560"
+              height="220"
+              rx="12"
+              fill="var(--color-fg-muted)"
+              fillOpacity="0.08"
+            />
+            <polyline fill="none" stroke="currentColor" strokeWidth="3" points={points} />
             <polygon fill="url(#history-fill)" points={`0,200 ${points} 560,200`} opacity="0.7" />
           </svg>
         ) : (
