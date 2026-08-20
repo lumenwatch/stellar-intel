@@ -31,7 +31,7 @@ export function LeaderboardTeaser() {
         </div>
         <Link
           href="/anchors"
-          className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+          className="text-secondary-text hover:text-primary-text focus-visible:ring-accent focus-visible:ring-offset-background inline-flex min-h-11 items-center gap-1 rounded-sm font-mono text-xs tracking-wide underline underline-offset-4 transition-colors duration-100 ease-out focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
         >
           See full leaderboard
           <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

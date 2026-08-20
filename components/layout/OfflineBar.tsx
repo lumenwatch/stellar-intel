@@ -35,7 +35,7 @@ export function OfflineBar() {
       <button
         onClick={() => setDismissed(true)}
         aria-label="Dismiss"
-        className="ml-auto rounded p-0.5 hover:bg-yellow-600/30"
+        className="ml-auto inline-flex h-11 w-11 items-center justify-center rounded-sm transition-colors duration-100 ease-out hover:bg-black/10 focus-visible:ring-2 focus-visible:ring-current focus-visible:outline-none"
       >
         <X className="h-4 w-4" />
       </button>
