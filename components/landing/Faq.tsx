@@ -19,7 +19,7 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     question: `How is this different from a block explorer or a single anchor's app?`,
-    answer: `We compare live rates across every integrated anchor and rank by net landed value (rate − fees − slippage − historical fill-rate penalty), not headline rate — then let you execute in one click. Plus a public reputation oracle and an MCP agent surface. It's the execution layer, not just a price page.`,
+    answer: `A block explorer tells you what settled on-chain. An anchor's own app tells you what that anchor says about itself. Neither answers "did this anchor answer its endpoints this week, and does its stellar.toml still match what is on-chain" — that is the record we keep, on a five-minute clock, with the scoring method published and small samples labelled as small. The execution path is real and non-custodial, but the record is the half that works without anyone's cooperation.`,
   },
   {
     question: `Why did anchor X not show up in the comparison?`,
