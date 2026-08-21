@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { ANCHORS } from '@/constants';
 import { AnchorLogo } from '@/components/ui/AnchorLogo';
 import { weightedComposite } from '@/lib/reputation/composite';
+import { holdsTopRank, isMeasured, rankStandings, scoreLabel } from '@/lib/reputation/standings';
 
 export const metadata: Metadata = {
   title: 'Anchor Standings — Stellar Intel',
@@ -37,24 +38,16 @@ interface StandingsEntry {
 }
 
 // ─── Score helpers ────────────────────────────────────────────────────────────
-
-/**
- * Composite score formula — mirrors app/api/reputation/leaderboard/route.ts.
- *
- *   composite = 0.4 × fill_rate
- *             + 0.3 × (1 − slippage_p50 / 0.05)
- *             + 0.3 × (1 − settle_p50 / 300)
- */
-function scoreLabel(score: number, sampleSize: number): { label: string; className: string } {
-  // An anchor with no recorded outcomes has not scored badly — it has not been
-  // measured. Calling that "Poor" is the empty-sample failure docs/POSITIONING.md
-  // retires by name: a fill-rate penalty computed from nothing ranks on priors.
-  if (sampleSize === 0) return { label: 'not yet measured', className: 'text-fg-muted' };
-  if (score >= 0.8) return { label: 'excellent', className: 'text-status-up' };
-  if (score >= 0.6) return { label: 'good', className: 'text-secondary-text' };
-  if (score >= 0.4) return { label: 'fair', className: 'text-status-unknown' };
-  return { label: 'poor', className: 'text-status-down' };
-}
+//
+// The composite formula mirrors app/api/reputation/leaderboard/route.ts:
+//
+//   composite = 0.4 × fill_rate
+//             + 0.3 × (1 − slippage_p50 / 0.05)
+//             + 0.3 × (1 − settle_p50 / 300)
+//
+// `scoreLabel`, `rankStandings` and `holdsTopRank` live in
+// lib/reputation/standings.ts so the empty-sample rule can be tested. This is
+// an async server component; nothing declared in it is reachable from vitest.
 
 // ─── Data loading ─────────────────────────────────────────────────────────────
 
@@ -114,15 +107,14 @@ async function loadStandings(): Promise<StandingsEntry[]> {
   );
 
   // Sort descending by composite score and assign ranks.
-  entries.sort((a, b) => b.composite - a.composite);
-  return entries.map((entry, index) => ({ rank: index + 1, ...entry }));
+  return rankStandings(entries);
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function StandingsPage() {
   const standings = await loadStandings();
-  const measured = standings.filter((entry) => entry.sampleSize > 0);
+  const measured = standings.filter((entry) => isMeasured(entry.sampleSize));
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
@@ -211,11 +203,8 @@ export default async function StandingsPage() {
           <tbody>
             {standings.map((entry) => {
               const { label, className } = scoreLabel(entry.composite, entry.sampleSize);
-              const unmeasured = entry.sampleSize === 0;
-              // Only an anchor with recorded outcomes can hold first place. A
-              // gold badge on a zero-sample row is an award for having been
-              // sorted first out of a list of equal zeroes.
-              const isTop = entry.rank === 1 && !unmeasured;
+              const unmeasured = !isMeasured(entry.sampleSize);
+              const isTop = holdsTopRank(entry);
 
               return (
                 <tr
