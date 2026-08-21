@@ -524,9 +524,13 @@ export function RateTable({
                 <td className="px-4 py-3 text-right text-secondary-text">—</td>
                 <td className="px-4 py-3 text-right font-medium text-primary-text">—</td>
                 <td className="px-4 py-3 text-right">
+                  {/* bg-sunken, not border: --border is a divider token and
+                      tests/contrast.spec.ts exempts it from the contrast matrix
+                      on the grounds that no control uses it. As a fill behind
+                      white it measured 1.43:1 in the light theme. */}
                   <button
                     disabled
-                    className="rounded-lg bg-border px-3 py-1.5 text-xs font-medium text-white disabled:cursor-not-allowed"
+                    className="rounded-lg bg-bg-sunken px-3 py-1.5 text-xs font-medium text-secondary-text disabled:cursor-not-allowed"
                   >
                     Pending
                   </button>
