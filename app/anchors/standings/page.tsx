@@ -27,7 +27,8 @@ export const revalidate = 300; // 5 minutes
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface StandingsEntry {
-  rank: number;
+  // null for an anchor with no recorded outcomes: it is unranked, not last.
+  rank: number | null;
   anchorId: string;
   anchorName: string;
   composite: number;
@@ -106,7 +107,8 @@ async function loadStandings(): Promise<StandingsEntry[]> {
     })
   );
 
-  // Sort descending by composite score and assign ranks.
+  // Measured anchors first, descending by composite and numbered 1..m.
+  // Unmeasured anchors follow, unranked.
   return rankStandings(entries);
 }
 
@@ -213,7 +215,7 @@ export default async function StandingsPage() {
                 >
                   <td className="py-4 pr-4">
                     <span className="text-fg-muted font-mono text-xs tabular-nums">
-                      {unmeasured ? '—' : String(entry.rank).padStart(2, '0')}
+                      {entry.rank === null ? '—' : String(entry.rank).padStart(2, '0')}
                     </span>
                   </td>
                   <td className="py-4 pr-4">

@@ -41,24 +41,41 @@ export function scoreLabel(
 }
 
 /**
- * Sort descending by composite and assign a 1-based rank.
+ * Order the table and number the anchors that have actually been measured.
  *
- * Ranks are assigned across every row, measured or not, so the ordinals stay
- * contiguous with the rendered table. Whether a given row is allowed to *show*
- * its rank is `holdsTopRank` and `isMeasured`, not this function.
+ * Measured anchors sort first, descending by composite, and take ranks 1..m.
+ * Unmeasured anchors follow in registry order with `rank: null`, because a
+ * position in a list is a claim about performance and there is nothing to
+ * claim. `Array.prototype.sort` is stable, so ties keep registry order.
  *
- * `Array.prototype.sort` is stable, so equal composites keep registry order.
+ * Ranking every row and hiding the number at render time is what this used to
+ * do, and it let an unmeasured anchor consume rank 1: `weightedComposite` is
+ * clamped to `[0, 1]`, so an anchor that is measured and failing completely
+ * scores exactly 0 and ties every unmeasured row. Registry order then decided
+ * first place, and nothing showed `#1` at all.
  */
-export function rankStandings<T extends RankableStanding>(entries: T[]): (T & { rank: number })[] {
-  return [...entries]
+export function rankStandings<T extends RankableStanding>(
+  entries: T[]
+): (T & { rank: number | null })[] {
+  // `rank` last in both spreads: a row that already carries one is being
+  // re-ranked, and the computed value has to win.
+  const measured = entries
+    .filter((entry) => isMeasured(entry.sampleSize))
     .sort((a, b) => b.composite - a.composite)
-    .map((entry, index) => ({ rank: index + 1, ...entry }));
+    .map((entry, index) => ({ ...entry, rank: index + 1 }));
+
+  const unmeasured = entries
+    .filter((entry) => !isMeasured(entry.sampleSize))
+    .map((entry) => ({ ...entry, rank: null }));
+
+  return [...measured, ...unmeasured];
 }
 
 /**
- * Only a measured anchor can hold first place. A gold badge on a zero-sample
- * row is an award for having been sorted first out of a list of equal zeroes.
+ * Only a measured anchor can hold first place. `rankStandings` already refuses
+ * to number an unmeasured row, and the `isMeasured` check keeps that true for
+ * any caller that builds its rows some other way.
  */
-export function holdsTopRank(entry: { rank: number; sampleSize: number }): boolean {
+export function holdsTopRank(entry: { rank: number | null; sampleSize: number }): boolean {
   return entry.rank === 1 && isMeasured(entry.sampleSize);
 }

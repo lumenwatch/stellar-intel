@@ -60,8 +60,35 @@ describe('rankStandings', () => {
   });
 
   it('keeps registry order for equal composites', () => {
-    const ranked = rankStandings([anchor(0, 0), anchor(0, 0), anchor(0, 0)]);
+    const ranked = rankStandings([anchor(0.5, 2), anchor(0.5, 9), anchor(0.5, 4)]);
+    expect(ranked.map((entry) => entry.sampleSize)).toEqual([2, 9, 4]);
     expect(ranked.map((entry) => entry.rank)).toEqual([1, 2, 3]);
+  });
+
+  it('numbers nobody when nothing has been measured', () => {
+    const ranked = rankStandings([anchor(0, 0), anchor(0, 0), anchor(0, 0)]);
+    expect(ranked.map((entry) => entry.rank)).toEqual([null, null, null]);
+  });
+
+  it('puts every unmeasured anchor below every measured one', () => {
+    const ranked = rankStandings([anchor(0, 0), anchor(0.3, 5), anchor(0, 0), anchor(0.9, 5)]);
+    expect(ranked.map((entry) => entry.rank)).toEqual([1, 2, null, null]);
+    expect(ranked.map((entry) => entry.composite)).toEqual([0.9, 0.3, 0, 0]);
+  });
+
+  it('keeps unmeasured anchors in registry order', () => {
+    const ranked = rankStandings([anchor(0, 0), anchor(0, 0)]);
+    expect(ranked).toHaveLength(2);
+  });
+
+  it('overwrites a rank the caller already set', () => {
+    // The spread order decides this. With `...entry` last, a stale rank on the
+    // input silently survives and the returned type is a lie.
+    const ranked = rankStandings([
+      { composite: 0.1, sampleSize: 3, rank: 99 },
+      { composite: 0.9, sampleSize: 3, rank: 98 },
+    ]);
+    expect(ranked.map((entry) => entry.rank)).toEqual([1, 2]);
   });
 });
 
@@ -85,13 +112,24 @@ describe('holdsTopRank', () => {
     expect(holdsTopRank(first)).toBe(true);
   });
 
-  it('leaves first place empty when the best measured anchor ties a zero sample at 0', () => {
-    // Known gap, documented rather than silently fixed: weightedComposite is
-    // clamped to [0, 1], so a fully failing measured anchor scores exactly 0 and
-    // ties every unmeasured row. The sort is stable, so registry order decides,
-    // and rank 1 can land on an unmeasured anchor. Nobody then shows "#1".
+  it('gives first place to a measured anchor scoring zero over an unmeasured one', () => {
+    // weightedComposite is clamped to [0, 1], so an anchor that is measured and
+    // failing completely scores exactly 0 and ties every unmeasured row. Ranking
+    // across all rows let registry order decide first place, and nothing showed
+    // "#1" at all. Measured rows are now numbered on their own.
     const ranked = rankStandings([anchor(0, 0), anchor(0, 8)]);
-    expect(ranked[0]?.sampleSize).toBe(0);
-    expect(ranked.some(holdsTopRank)).toBe(false);
+    const [first] = ranked;
+    if (!first) throw new Error('expected a ranked entry');
+    expect(first.sampleSize).toBe(8);
+    expect(holdsTopRank(first)).toBe(true);
+  });
+
+  it('refuses a rank of 1 that arrives on an unmeasured row', () => {
+    // Guards a caller that builds rows without going through rankStandings.
+    expect(holdsTopRank({ rank: 1, sampleSize: 0 })).toBe(false);
+  });
+
+  it('is false for an unranked row', () => {
+    expect(holdsTopRank({ rank: null, sampleSize: 0 })).toBe(false);
   });
 });
