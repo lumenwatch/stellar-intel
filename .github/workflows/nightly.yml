@@ -24,7 +24,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: Resolve every anchor .well-known/stellar.toml
+      - name: Resolve every anchor home-domain TOML (TOML reachability only)
         id: probe
         run: |
           # Extract anchor domains from constants/anchors.ts so we do not drift
@@ -66,11 +66,10 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-          # Also surface the report on the run page. Until now it was only
-          # readable inside a failure issue, so a green night — the normal case,
-          # and the one where a slow drift is visible — showed nothing.
+          # Surface the report on the run page (home-domain TOML resolution,
+          # not an anchor health summary — the two measure different things).
           {
-            echo "### Anchor TOML resolution"
+            echo "### Home-domain TOML resolution"
             echo ''
             echo '```'
             echo -e "$REPORT"
@@ -93,6 +92,12 @@ jobs:
     # debounces on `thresholdNights`, so it wants one authoritative write per
     # night, not one per hour. data-health.yml keeps probing hourly, but only to
     # raise a degradation issue — it stays --dry-run and read-only.
+    outputs:
+      # Export the per-anchor health verdict so open-issue-on-failure can
+      # surface it in the alert body. Previously the alert only showed the
+      # home-domain TOML summary, which reads "HTTP 200" even for anchors whose
+      # service endpoints are down — the two probes measure different things.
+      health_verdict: ${{ steps.read-ledger.outputs.health_verdict }}
     permissions:
       contents: write
       pull-requests: write
@@ -109,6 +114,39 @@ jobs:
         run: |
           set -euo pipefail
           node scripts/validate-anchors.mjs
+
+      - name: Emit health ledger verdict for the alert
+        id: read-ledger
+        shell: bash
+        run: |
+          # Render a compact table from constants/anchor-health.json so the
+          # alert body shows lastStatus / consecutiveFailures / degraded per
+          # anchor. This is the signal anchor-domains never captures: a TOML
+          # can return HTTP 200 while the underlying SEP-24 service is gone.
+          VERDICT=$(node -e "
+            const fs = require('fs');
+            let ledger;
+            try {
+              ledger = JSON.parse(fs.readFileSync('constants/anchor-health.json', 'utf8'));
+            } catch {
+              console.log('(ledger unavailable)');
+              process.exit(0);
+            }
+            const rows = Object.entries(ledger.anchors || {}).map(([id, h]) => {
+              const status = h.lastStatus === 'fail' ? 'FAIL' : 'ok';
+              const deg = h.degraded ? ' [DEGRADED]' : '';
+              const fails = h.consecutiveFailures > 0
+                ? \` (\${h.consecutiveFailures} consecutive fail\${h.consecutiveFailures === 1 ? '' : 's'})\`
+                : '';
+              return \`\${id.padEnd(14)} \${status}\${deg}\${fails}\`;
+            });
+            console.log(rows.join('\n'));
+          ")
+          {
+            echo "health_verdict<<EOF"
+            echo "$VERDICT"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       # Opens a PR rather than pushing to main. A ruleset on main requires the
       # `closing-keywords` status check, and a direct push can never satisfy a
@@ -233,6 +271,7 @@ jobs:
       - uses: actions/github-script@v9
         env:
           ANCHOR_SUMMARY: ${{ needs.anchor-domains.outputs.summary }}
+          HEALTH_VERDICT: ${{ needs.anchor-health-ledger.outputs.health_verdict }}
           RESULT_ANCHOR_DOMAINS: ${{ needs.anchor-domains.result }}
           RESULT_INTEGRITY: ${{ needs.reputation-integrity.result }}
           RESULT_SNAPSHOT: ${{ needs.anchor-survey-snapshot.result }}
@@ -267,7 +306,18 @@ jobs:
               '| --- | --- |',
               ...Object.entries(results).map(([job, r]) => `| \`${job}\` | ${r} |`),
               '',
-              'Anchor summary (last run):',
+              // Fix 1: show the health ledger verdict first — this is the
+              // signal that matters. lastStatus / consecutiveFailures / degraded
+              // are what the validate-anchors probe actually measures.
+              '**Health ledger verdict** (`constants/anchor-health.json`):',
+              '```',
+              process.env.HEALTH_VERDICT || '(health ledger unavailable — anchor-health-ledger may have failed before writing)',
+              '```',
+              '',
+              // Fix 2: relabelled from "Anchor summary" to "Home-domain TOML
+              // resolution" so readers understand it only checks whether the
+              // TOML document is fetchable, not whether any service is running.
+              '**Home-domain TOML resolution** (TOML reachability only):',
               '```',
               process.env.ANCHOR_SUMMARY || '(anchor-domains did not report)',
               '```',
