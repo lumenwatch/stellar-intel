@@ -20,22 +20,22 @@ test.describe('Landing page smoke test', () => {
 
   test('renders the hero heading and headline stats', async ({ page }) => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(
-      'Health and reputation monitoring'
+      'What anchors say.What anchors did.'
     );
-    await expect(page.getByText('Anchors tracked')).toBeVisible();
-    await expect(page.getByText('Corridors live')).toBeVisible();
-    await expect(page.getByText('Countries reachable')).toBeVisible();
+    await expect(page.locator('dl dt').filter({ hasText: /^anchors$/ })).toBeVisible();
+    await expect(page.locator('dl dt').filter({ hasText: /^corridors$/ })).toBeVisible();
+    await expect(page.locator('dl dt').filter({ hasText: /^countries$/ })).toBeVisible();
   });
 
-  test('"Off-ramp now" CTA navigates to /offramp', async ({ page }) => {
-    await page.getByRole('link', { name: 'Off-ramp now' }).click();
+  test('"Off-ramp" navigation opens the off-ramp page', async ({ page }) => {
+    await page.getByRole('banner').getByRole('link', { name: 'Off-ramp', exact: true }).click();
     // Generous timeout: a route visited for the first time against a local
     // `next dev` server compiles on demand, which can exceed the default 5s.
     await page.waitForURL(/\/offramp/, { timeout: 15000 });
   });
 
-  test('"View anchors" CTA navigates to /anchors', async ({ page }) => {
-    await page.getByRole('link', { name: 'View anchors' }).click();
+  test('"See the record" opens the anchor registry', async ({ page }) => {
+    await page.getByRole('link', { name: 'See the record', exact: true }).click();
     await page.waitForURL(/\/anchors/, { timeout: 15000 });
   });
 });
